@@ -374,7 +374,15 @@ avec ce bootloader :
 Sans cela : `Failed to receive handshake response` puis, après une session,
 `Failed to send handshake` jusqu'au redémarrage du téléphone en Download mode.
 
-## 10. Dépôt
+## 10. Dépôt et artefacts
+
+- `artifacts/` : images compilées (36 M chacune) + `SHA256SUMS`, prêtes à
+  flasher (elles ne démarrent pas encore, voir plus bas).
+- `docs/SOURCES.md` : versions et commits épinglés de toutes les sources.
+- `docs/TESTLOG.md` : journal détaillé des tests et des sondes.
+- `docs/probes/` : sources assembleur des sondes.
+
+## 11. Dépôt
 
 - `docs/TESTLOG.md` : journal détaillé des tests sur appareil réel et des
   sondes bas niveau.
