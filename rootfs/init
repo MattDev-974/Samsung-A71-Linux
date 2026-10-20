@@ -1,0 +1,125 @@
+#!/bin/sh
+# /init - PID 1 for the Galaxy A71 "minimum viable Linux" image.
+#
+# Everything lives in the initramfs: a shell on the framebuffer console, a
+# shell on the serial port, an SSH server reachable over USB networking, and
+# optional Wi-Fi client support.
+PATH=/sbin:/bin:/usr/sbin:/usr/bin
+export PATH
+export HOME=/root
+export TERM=linux
+
+mount -t proc proc /proc
+mount -t sysfs sysfs /sys
+mount -t devtmpfs devtmpfs /dev 2>/dev/null
+mkdir -p /dev/pts /dev/shm /run /tmp /var/run /var/log
+mount -t devpts devpts /dev/pts 2>/dev/null
+mount -t tmpfs -o mode=1777 tmpfs /tmp 2>/dev/null
+mount -t tmpfs -o mode=755 tmpfs /run 2>/dev/null
+ln -sf /run /var/run
+
+hostname -F /etc/hostname 2>/dev/null || hostname a71
+
+# --- SSH ------------------------------------------------------------------
+# Host keys are generated at build time, so this does not block on entropy.
+mkdir -p /run/sshd /var/empty
+chmod 0755 /var/empty
+/usr/sbin/sshd -e
+
+# --- USB networking -------------------------------------------------------
+# The gadget exposes RNDIS + CDC-ECM so Windows, macOS and Linux all get a
+# network interface.  Enumeration takes a moment, so configure in the
+# background: the shell must be usable even with nothing plugged in.
+sh /usr/local/sbin/usb-gadget.sh start >/dev/null 2>&1 || true
+
+setup_usb() {
+    conf=/run/dnsmasq-usb.conf
+    : > "$conf"
+    found=0
+    for sysif in /sys/class/net/usb*; do
+        [ -e "$sysif" ] || continue
+        dev=$(basename "$sysif")
+        case "$dev" in
+            usb0) addr=172.16.42.1 ;;
+            usb1) addr=172.16.43.1 ;;
+            *) continue ;;
+        esac
+        net=${addr%.*}
+        ip link set "$dev" up 2>/dev/null
+        ip addr show dev "$dev" | grep -q "inet $addr/" || \
+            ip addr add "$addr/24" dev "$dev" 2>/dev/null
+        {
+            echo "interface=$dev"
+            echo "dhcp-range=$dev,$net.100,$net.150,255.255.255.0,24h"
+            echo "dhcp-option=$dev,3,$addr"
+            echo "dhcp-option=$dev,6,1.1.1.1,9.9.9.9"
+        } >> "$conf"
+        found=1
+    done
+    [ "$found" = 1 ] || return 1
+
+    if ! pidof dnsmasq >/dev/null 2>&1; then
+        {
+            echo "bind-interfaces"
+            echo "user=root"
+            echo "port=0"
+            echo "dhcp-leasefile=/run/dnsmasq.leases"
+            echo "pid-file=/run/dnsmasq.pid"
+            echo "log-facility=/run/dnsmasq.log"
+            cat "$conf"
+        } > /run/dnsmasq.conf
+        dnsmasq --conf-file=/run/dnsmasq.conf
+    fi
+    return 0
+}
+
+(
+    i=0
+    while [ $i -lt 120 ]; do
+        setup_usb && break
+        i=$((i + 1))
+        sleep 1
+    done
+) &
+
+# --- Wi-Fi (only if a config was dropped in) ------------------------------
+if [ -f /etc/wpa_supplicant/wpa_supplicant.conf ]; then
+    ip link set wlan0 up 2>/dev/null
+    wpa_supplicant -B -i wlan0 -c /etc/wpa_supplicant/wpa_supplicant.conf -D nl80211
+    sleep 2
+    dhcpcd -q -b wlan0 || udhcpc -q -i wlan0 -b
+fi
+
+# --- local terminals ------------------------------------------------------
+# One shell on the framebuffer console (tty1) and one on the debug UART.
+# setsid makes the shell a session leader, so opening /dev/ttyN below makes
+# it the controlling terminal (no cttyhack applet needed).
+spawn_shell() {
+    tty=$1
+    # Skip UARTs/consoles that do not exist on this board (e.g. under QEMU).
+    [ -c "/dev/$tty" ] || return 0
+    while true; do
+        setsid sh -c "exec sh -l </dev/$tty >/dev/$tty 2>&1" </dev/null
+        sleep 1
+    done &
+}
+
+spawn_shell tty1
+spawn_shell ttyMSM0
+
+cat <<EOF
+
+  Galaxy A71 (samsung-a71) - minimal Linux
+  ----------------------------------------
+  console : tty1 (screen) / ttyMSM0 (USB-serial debug)
+  ssh     : ssh root@172.16.42.1  (USB RNDIS)
+            ssh root@172.16.43.1  (USB CDC-ECM)
+  wifi    : wifi-connect "<SSID>" "<password>"
+  usb ifs : $(ls /sys/class/net 2>/dev/null | tr '\n' ' ')
+
+EOF
+
+# PID 1: reap children forever.
+while true; do
+    wait
+done
