@@ -15,9 +15,27 @@ fi
 TC="$ROOT/toolchain/aarch64--glibc--stable-2024.05-1/bin/aarch64-buildroot-linux-gnu-"
 U="$ROOT/build/uniloader"
 
+# The dtb section of the boot image MUST be the Android/Lineage device tree:
+# sboot rejects a mainline DTB there and falls back to Download mode.  The
+# mainline DTB still travels inside uniLoader (blob/dtb).
+ANDROID_DTB=${ANDROID_DTB:-$ROOT/android/dtb}
+
 for f in out/Image out/dtb out/initramfs.cpio.gz; do
     [ -f "$ROOT/$f" ] || { echo "missing $f - run the earlier build steps" >&2; exit 1; }
 done
+
+if [ ! -f "$ANDROID_DTB" ]; then
+    cat >&2 <<EOF
+error: Android DTB not found at $ANDROID_DTB
+
+Extract it from a stock/LineageOS boot image (64 MiB):
+
+  curl -L -o lineage-boot.img \
+    https://mirrorbits.lineageos.org/full/a71/20261014/boot.img
+  ./scripts/extract-dtb.py lineage-boot.img android/dtb
+EOF
+    exit 1
+fi
 
 echo ">> building uniLoader (a71_defconfig)"
 rm -rf "$U"
@@ -40,16 +58,14 @@ echo ">> creating boot images"
 python3 "$ROOT/scripts/mkbootimg.py" \
     --kernel "$ROOT/out/uniLoader.img" \
     --ramdisk "$ROOT/build/empty.cpio.gz" \
-    --dtb "$ROOT/out/dtb" \
-    --output "$ROOT/out/boot-uniloader.img" \
-    --seandroid
+    --dtb "$ANDROID_DTB" \
+    --output "$ROOT/out/boot-uniloader.img"
 
 python3 "$ROOT/scripts/mkbootimg.py" \
     --kernel "$ROOT/out/Image" \
     --ramdisk "$ROOT/out/initramfs.cpio.gz" \
-    --dtb "$ROOT/out/dtb" \
-    --output "$ROOT/out/boot-direct.img" \
-    --seandroid
+    --dtb "$ANDROID_DTB" \
+    --output "$ROOT/out/boot-direct.img"
 
 ( cd "$ROOT/out" && sha256sum Image dtb initramfs.cpio.gz uniLoader.img \
     boot-uniloader.img boot-direct.img > SHA256SUMS )

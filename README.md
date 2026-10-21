@@ -27,8 +27,13 @@ Tout est dans `out/` :
 | `kernel.config` | 221 K | configuration du noyau utilisée |
 | `SHA256SUMS` | — | empreintes des fichiers ci-dessus |
 
-Les deux images font ~38 Mo, ce qui tient dans la partition `boot` d'un A71
+Les deux images font ~37 Mo, ce qui tient dans la partition `boot` d'un A71
 (64 Mo) avec de la marge.
+
+**Important** : la section `dtb` du `boot.img` doit contenir le device tree
+**Android/Lineage** (`android.dtb`, extrait du `boot.img` officiel), pas le DTB
+mainline — sinon `sboot` retombe en Download mode. Le DTB mainline voyage
+dans uniLoader.
 
 ### Ce que fait l'image au démarrage
 
@@ -206,9 +211,13 @@ d'hôte pré-générées.
 
 ### Image de boot
 
-En-tête AOSP **v2** (magic `ANDROID!`, **page 4096**, section `dtb`), tag
-`SEANDROIDENFORCE` ajouté en fin de fichier (attendu par certains bootloaders
-Samsung). `scripts/mkbootimg.py` est autonome (pas besoin de `mkbootimg`).
+En-tête AOSP **v2** (magic `ANDROID!`, **page 4096**, section `dtb`).
+`scripts/mkbootimg.py` est autonome (pas besoin de `mkbootimg`).
+
+La section `dtb` de l'en-tête est le DTB **Android** (`android/dtb`, extrait
+par `scripts/extract-dtb.py` depuis le `boot.img` LineageOS) : `sboot` refuse
+le DTB mainline à cet endroit (retour Download mode). Le DTB mainline est
+embarqué dans uniLoader.
 
 Les adresses et la taille de page ont été relevées sur le `boot.img`
 LineageOS 23.2 officiel de l'A71 (`kernel_addr=0x8000`,

@@ -51,6 +51,19 @@ répond en couleurs sur le framebuffer (`docs/probes/`).
 | entrée du noyau patchée (marqueurs) | bleu | **le noyau s'exécute** |
 | lecture `0xa1300000` (ramoops) | bloqué | zone peut-être protégée, à confirmer |
 
+## Cause du « uniLoader ne démarre même pas » (retour Download mode)
+
+Le `boot.img` produit initialement mettait le **DTB mainline** dans la section
+`dtb` de l'en-tête. `sboot` le refuse et retombe en Download mode. Vérifié
+avec une sonde : uniLoader minuscule (payload peinture) + DTB mainline dans
+l'en-tête → Download mode ; avec le DTB Android/Lineage → uniLoader s'exécute
+et affiche « Booting kernel… ».
+
+Correctif : `android.dtb` (extrait du `boot.img` LineageOS par
+`scripts/extract-dtb.py`) dans l'en-tête, DTB mainline embarqué dans
+uniLoader. Voir `artifacts/boot-uniloader-fixed.img` et
+`artifacts/boot-uniloader-small.img`.
+
 ## Conclusions
 
 - La chaîne de boot est correcte jusqu'au saut dans le noyau.
