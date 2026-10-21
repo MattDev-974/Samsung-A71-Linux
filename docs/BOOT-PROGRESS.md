@@ -126,3 +126,31 @@ Le blocage restant est dans la construction des tables de pages de la mémoire
 linéaire (`map_mem`). Vérifier : découpage `force_pte_mapping()` (mappings 4K
 pour 6 Gio), allocations `memblock` des tables, ou passer en mappages de blocs
 2 Mio (`CONFIG_RODATA_FULL_DEFAULT_ENABLED=n`).
+
+## État au 21/10 (fin de session)
+
+Acquis :
+
+- boot.img v2 avec DTB Android/Lineage dans l'en-tête → uniLoader s'exécute ;
+- nœud `memory@80000000` patché (2 Gio pour les tests) → le noyau va jusqu'à
+  `run_init_process("/init")` ;
+- init exécuté (prouvé par un init qui redémarre) ;
+- console fbcon visible, début du log lisible.
+
+Ouvert :
+
+- l'écran se corrompt dès que le log défile (mode/stride annoncés 135x50 au
+  lieu de 135x150) ; un digest court (≤30 lignes) devait contourner le
+  défilement mais n'a pas affiché de texte exploitable ;
+- pas d'UDC : dwc3 en `dr_mode = "otg"` + `usb-role-switch`, aucun pilote de
+  rôle Type-C dans l'initramfs ; forcer `dr_mode = "peripheral"` n'a pas
+  suffi ;
+- blocage dans `map_mem` avec 6 Gio (marqueur 22).
+
+Prochaines actions utiles :
+
+1. relever `yres`/`stride` réels via `/sys/class/graphics/fb0/*` et corriger
+   le nœud `framebuffer@9c000000` ;
+2. vérifier le probe dwc3 (`/sys/class/udc`, PHY, régulateurs) en imprimant
+   un digest très court sur la console ;
+3. comprendre `map_mem` à 6 Gio (mappages 4 Kio de `force_pte_mapping()`).
