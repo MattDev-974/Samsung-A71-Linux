@@ -172,3 +172,19 @@ Repères :
 - **piège** : `objcopy -O binary` sur un objet `.o` ne résout pas les
   relocations ; il faut lier (`ld -Ttext=0`) avant la conversion, sinon la
   police est adressée au mauvais endroit et la sonde plante.
+
+## Récupérer le journal sur carte SD
+
+Le noyau embarque `MMC`, `MMC_BLOCK`, `MMC_SDHCI_MSM`, `VFAT_FS` et
+`EXT4_FS` en dur, et le contrôleur SD (`sdhc@8804000`) est `status = "okay"`
+dans le DTB. On peut donc faire écrire le journal par l'init sur une carte
+SD FAT32, puis lire la carte sur un PC — sans console ni USB.
+
+`docs/probes/init-sdlog.sh` : init qui monte la carte (essaie `/dev/mmcblk*`
+pendant 60 s), y écrit `a71-dmesg.txt` (journal noyau complet) et les
+fichiers pstore, avec en tête la liste des périphériques bloc, `/sys/class/udc`
+et les paramètres `fb0`.
+
+Variante de diagnostic : si le montage échoue, l'init fait `reboot -f` —
+un redémarrage en boucle signifie « carte non détectée / montage impossible »,
+un arrêt signifie « montage OK, logs écrits ».
