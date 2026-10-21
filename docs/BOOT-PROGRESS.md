@@ -154,3 +154,21 @@ Prochaines actions utiles :
 2. vérifier le probe dwc3 (`/sys/class/udc`, PHY, régulateurs) en imprimant
    un digest très court sur la console ;
 3. comprendre `map_mem` à 6 Gio (mappages 4 Kio de `force_pte_mapping()`).
+
+## Lire le journal sans noyau (sonde pstore)
+
+`docs/probes/probe_log.c` est une sonde uniLoader qui lit directement la zone
+console de ramoops en RAM physique et la dessine à l'écran (police 8x8 du
+noyau, agrandie ×2, 60x25 caractères). Elle permet de relire le journal d'un
+démarrage raté **sans démarrer un autre noyau** (Android ou recovery
+écraseraient ramoops).
+
+Repères :
+
+- zone console = base ramoops + (dmesg records) = `0xa1380000`, taille 0x40000
+  (disposition : dmesg records 0x80000, console 0x40000, pmsg 0x40000) ;
+- la sonde cherche le dernier octet non nul puis affiche les 1500 octets
+  précédents ;
+- **piège** : `objcopy -O binary` sur un objet `.o` ne résout pas les
+  relocations ; il faut lier (`ld -Ttext=0`) avant la conversion, sinon la
+  police est adressée au mauvais endroit et la sonde plante.
