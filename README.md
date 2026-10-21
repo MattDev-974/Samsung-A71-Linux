@@ -30,6 +30,9 @@ Tout est dans `out/` :
 Les deux images font ~37 Mo, ce qui tient dans la partition `boot` d'un A71
 (64 Mo) avec de la marge.
 
+> **Vérifié sur appareil (21/10/2026)** : `artifacts/boot-uniloader-fixed.img`
+> atteint « Booting kernel… » et ne retombe plus en Download mode.
+
 **Important** : la section `dtb` du `boot.img` doit contenir le device tree
 **Android/Lineage** (`android.dtb`, extrait du `boot.img` officiel), pas le DTB
 mainline — sinon `sboot` retombe en Download mode. Le DTB mainline voyage

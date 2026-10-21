@@ -64,6 +64,10 @@ Correctif : `android.dtb` (extrait du `boot.img` LineageOS par
 uniLoader. Voir `artifacts/boot-uniloader-fixed.img` et
 `artifacts/boot-uniloader-small.img`.
 
+**Vérifié sur appareil (21/10/2026)** : `boot-uniloader-fixed.img`
+(créneau noyau 37 Mo) flashe à 100 % et atteint bien « Booting kernel… » ;
+il ne retombe plus en Download mode. Le noyau se fige ensuite, comme avant.
+
 ## Conclusions
 
 - La chaîne de boot est correcte jusqu'au saut dans le noyau.

@@ -28,6 +28,9 @@ mainline (au-dessus du noyau).
 
 ## État
 
+`boot-uniloader-fixed.img` a été **vérifié sur appareil** (21/10/2026) :
+flash à 100 %, « Booting kernel… » atteint, plus de retour en Download mode.
+
 Ces images **atteignent « Booting kernel… »** mais le noyau se fige ensuite
 avant la console/l'init (`docs/TESTLOG.md`).
 `boot-uniloader-small.img` est le meilleur candidat pour continuer le
