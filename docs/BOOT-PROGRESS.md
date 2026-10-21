@@ -81,6 +81,31 @@ Problèmes restants :
 - le gadget USB (RNDIS/ECM) n'apparaît pas encore — l'init réel tourne mais
   `/sys/class/udc/*` est probablement vide (contrôleur dwc3 non sondé).
 
+## Affichage : mode et stride suspects
+
+Le log annonce `Console: switching to colour frame buffer device 135x50`,
+alors que le DTB déclare width=1080, height=2400, stride=4320 (ce qui
+donnerait 135x150). L'écran affiche bien le début du log puis « défile en
+étant corrompu » : cela ressemble à un désaccord entre le mode réellement
+programmé par le bootloader (zone visible et/ou stride) et ce que déclare le
+DTB.
+
+À essayer : relever la ligne complète
+`simple-framebuffer ... format=..., mode=..., linelength=...` , puis tester
+`height = <800>` et/ou un stride de 0x1100 (1088 px) dans le nœud
+`framebuffer@9c000000`.
+
+## Gadget USB : pas d'UDC
+
+Le nœud `usb@a6f8800` est en `dr_mode = "otg"` avec `usb-role-switch` et
+aucun pilote de rôle Type-C n'est présent dans l'initramfs, donc aucun UDC
+n'est créé. Forcer `dr_mode = "peripheral"` n'a pas suffi : il faut vérifier
+les PHY (`phys = <&usb_1_hsphy ...>`), les régulateurs et les horloges, et
+éventuellement `role-switch-default-mode = "peripheral"`.
+
+Sans console fiable, la prochaine étape est de lire le log noyau via
+pstore/ramoops après un redémarrage sur Android/LineageOS.
+
 ## Instrumentation de l'init
 
 L'init écrit son avancement dans la **dernière ligne du framebuffer**
