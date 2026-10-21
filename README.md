@@ -386,7 +386,15 @@ avec ce bootloader :
 Sans cela : `Failed to receive handshake response` puis, après une session,
 `Failed to send handshake` jusqu'au redémarrage du téléphone en Download mode.
 
-## 10. Dépôt et artefacts
+## 10. Progression du démarrage
+
+`docs/BOOT-PROGRESS.md` documente l'instrumentation du noyau (marqueurs
+`a71_progress` + sonde de bandes) et les résultats : le noyau atteint
+`start_kernel`, parse le DTB, détecte la RAM (après correctif du nœud
+`memory@80000000`, qui vaut 0 dans le DTB mainline) et se bloque dans
+`paging_init`/`map_mem`.
+
+## 11. Dépôt et artefacts
 
 - `artifacts/` : images compilées (36 M chacune) + `SHA256SUMS`, prêtes à
   flasher (elles ne démarrent pas encore, voir plus bas).
