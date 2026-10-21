@@ -386,7 +386,11 @@ avec ce bootloader :
 Sans cela : `Failed to receive handshake response` puis, après une session,
 `Failed to send handshake` jusqu'au redémarrage du téléphone en Download mode.
 
-## 10. Progression du démarrage
+## 10. Progression du démarrage et affichage
+
+`docs/DISPLAY.md` documente la corruption de l'écran : constats, tests
+réalisés et causes possibles (auto-rafraîchissement du panneau, alimentations
+non gérées, mode incohérent, DSI/PHY non initialisés).
 
 `docs/BOOT-PROGRESS.md` documente l'instrumentation du noyau (marqueurs
 `a71_progress` + sonde de bandes) et les résultats : le noyau atteint
