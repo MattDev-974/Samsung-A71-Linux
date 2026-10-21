@@ -62,6 +62,39 @@ la lecture est fausse (premiers résultats « bleu = 5 » erratiques).
 UniLoader devrait à terme récupérer cette taille depuis le DTB que lui passe
 le bootloader (celui-ci est déjà patché) au lieu de la coder en dur.
 
+## Le noyau démarre en espace utilisateur (2 Gio)
+
+Avec le nœud mémoire patché à **2 Gio** (au lieu de 6), le noyau va au bout :
+
+- la console fbcon s'affiche (`Console: switching to colour frame buffer
+  device 135x50`, logo Tux), le début du log est lisible ;
+- le marqueur atteint **50** = juste avant `run_init_process("/init")` ;
+- une image de test dont `/init` ne fait que `reboot -f` provoque bien un
+  **redémarrage** : l'espace utilisateur est atteint.
+
+Avec 6 Gio, le blocage reste dans `map_mem` (marqueur 22) : probablement les
+mappings 4 Kio de `force_pte_mapping()` sur une zone beaucoup plus grande.
+
+Problèmes restants :
+
+- l'écran se corrompt quelques secondes après le passage en fbcon ;
+- le gadget USB (RNDIS/ECM) n'apparaît pas encore — l'init réel tourne mais
+  `/sys/class/udc/*` est probablement vide (contrôleur dwc3 non sondé).
+
+## Instrumentation de l'init
+
+L'init écrit son avancement dans la **dernière ligne du framebuffer**
+(physique `0xA09E2320`, hors zone console) avec `dd` sur `/dev/fb0`. Une sonde
+uniLoader relit cette valeur après redémarrage :
+
+| Valeur | Étape |
+|---|---|
+| 1 | init lancé |
+| 2 | montages faits |
+| 3 | sshd démarré |
+| 4 | script gadget exécuté |
+| 5 | UDC présent |
+
 ## Piste suivante
 
 Le blocage restant est dans la construction des tables de pages de la mémoire
