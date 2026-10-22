@@ -31,6 +31,7 @@ ROOTPASS=
 USERNAME=
 USERPASS=
 PACKAGES="nano htop"
+INIT_SYSTEM=openrc            # openrc | script
 TARGET_KIND=                 # sd | userdata
 TARGET_DEV=
 
@@ -70,7 +71,13 @@ if [ "${1:-}" != "--defaults" ]; then
         printf 'Mot de passe de %s : ' "$USERNAME"; read -r USERPASS
     fi
 
-    PACKAGES=$(ask "Paquets supplémentaires (espace)" "$PACKAGES")
+        echo "Système d'init :"
+    echo "  1) OpenRC (vrai Alpine, services rc-service) — recommandé"
+    echo "  2) script simple (comme avant)"
+    INIT=$(ask "choix" "1")
+    case "$INIT" in 1) INIT_SYSTEM=openrc ;; *) INIT_SYSTEM=script ;; esac
+
+PACKAGES=$(ask "Paquets supplémentaires (espace)" "$PACKAGES")
 
     echo "Cible d'installation :"
     echo "  1) carte SD (ext4)"
@@ -162,6 +169,18 @@ if [ -n "$USERNAME" ] && [ "$SSH_AUTH" != "password" ] && [ -f "$KEYFILE" ]; the
     chmod 600 "$STAGE/home/$USERNAME/.ssh/authorized_keys"
 fi
 
+# --- init system
+if [ "$INIT_SYSTEM" = "openrc" ]; then
+    add_pkg openrc
+    add_pkg alpine-conf
+    add_pkg chrony
+    cp "$ROOT/scripts/a71-openrc-setup.sh" "$STAGE/etc/a71-openrc-setup.sh"
+    chmod +x "$STAGE/etc/a71-openrc-setup.sh"
+    echo "openrc" > "$STAGE/etc/a71-init"
+else
+    echo "script" > "$STAGE/etc/a71-init"
+fi
+
 # --- paquets à installer au premier démarrage
 if [ -n "$PACKAGES" ]; then
     echo "$PACKAGES" > "$STAGE/etc/a71-packages"
@@ -186,6 +205,11 @@ tz=$(cat /etc/timezone 2>/dev/null)
 if [ -f /etc/a71-packages ]; then
     apk update 2>&1 | tail -2
     apk add --no-cache $(cat /etc/a71-packages) 2>&1 | tail -4 || true
+fi
+if [ "$(cat /etc/a71-init 2>/dev/null)" = "openrc" ] && [ -x /etc/a71-openrc-setup.sh ]; then
+    echo "a71: bascule vers OpenRC" > /dev/kmsg
+    /etc/a71-openrc-setup.sh >>/var/log/a71-openrc.log 2>&1 || true
+    rm -f /etc/a71-openrc-setup.sh
 fi
 rm -f /etc/a71-firstboot
 echo "a71: premier démarrage terminé" > /dev/kmsg
