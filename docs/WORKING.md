@@ -73,7 +73,32 @@ Deux plages séparées par un **trou** (0xC0000000–0x1_00000000). Déclarer un
 seule plage de 6 Gio à 0x80000000 couvre ce trou et le noyau se bloque dans
 `map_mem`. Avec les deux plages : `MemTotal: 5 634 500 kB`.
 
-## Wi-Fi (en cours)
+## Wi-Fi : ce qui est fait, ce qui bloque
+
+**Fait** : les modules sont compilés et chargés au démarrage — fermeture
+transitive calculée depuis `modules.dep` (13 modules), `depmod` sans symbole
+manquant :
+
+```
+ath10k_snoc            49152  0
+ath10k_core           483328  1 ath10k_snoc
+qcom_q6v5_wcss         16384  0
+```
+
+**Blocage** : `ath10k_snoc 18800000.wifi: failed to register wlfw qmi client: -517`.
+
+Le service QMI WLFW est fourni par le firmware du sous-système WLAN. Sur
+SM7150, `qcom_q6v5_wcss` ne gère que `ipq8074` et `qcs404` (aucun compatible
+SM7150) : rien ne démarre ce firmware, donc le service n'existe jamais et le
+pilote diffère indéfiniment.
+
+Pistes suivantes :
+
+- vérifier comment le port downstream/Android démarre le WLAN sur SM7150
+  (`WLAN FW` via PIL « wcss », ou via le modem) ;
+- regarder du côté de `qcom,sm7150-wcss-pil` / IPA si le transport QMI passe
+  par un autre sous-système ;
+- en attendant, l'accès réseau reste le gadget USB (RNDIS/ECM).
 
 `ATH10K_SNOC` est compilé en dur (il a fallu désactiver les pilotes remoteproc
 qui forçaient `QCOM_RPROC_COMMON=m`), le nœud `wcn3990-wifi` est activé avec
