@@ -11,7 +11,8 @@
 set -eu
 
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
-BASE=${A71_BASE:-$ROOT/../work/a71-ready-rootfs.tar.gz}
+BASE=${A71_BASE:-$ROOT/out/a71-base.tar.gz}
+[ -f "$BASE" ] || BASE=$ROOT/dist/a71-base.tar.gz
 OUT=${A71_OUT:-$ROOT/../work/a71-custom-rootfs.tar.gz}
 FLASH=0
 

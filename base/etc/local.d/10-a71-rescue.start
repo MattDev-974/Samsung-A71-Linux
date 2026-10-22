@@ -1,0 +1,12 @@
+#!/bin/sh
+# Filet de sécurité : si sshd n'écoute pas 90 s après le démarrage, on repasse
+# sur l'ancien script d'init (/sbin/a71-system) qui monte le réseau et SSH à la
+# main. Le sous-shell rend la main immédiatement au service « local ».
+(
+    sleep 90
+    if ! pidof sshd >/dev/null 2>&1; then
+        echo "a71: sshd absent, init de secours" > /dev/kmsg
+        [ -x /sbin/a71-system ] && /sbin/a71-system
+    fi
+) &
+exit 0

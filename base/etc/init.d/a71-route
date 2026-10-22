@@ -1,0 +1,32 @@
+#!/sbin/openrc-run
+description="Default route through the PC (internet sharing)"
+
+depend() {
+    need a71-net
+    after a71-net
+}
+
+start() {
+    ebegin "Default route through the PC"
+    (
+        while :; do
+            if ! ip route show default 2>/dev/null | grep -q '^default'; then
+                peer=$(awk '$3 ~ /^172\.16\.42\./ {print $3; exit}' /run/dnsmasq.leases 2>/dev/null)
+                if [ -n "$peer" ]; then
+                    ip route replace default via "$peer" dev usb0 2>/dev/null
+                else
+                    peer=$(awk '$3 ~ /^172\.16\.43\./ {print $3; exit}' /run/dnsmasq.leases 2>/dev/null)
+                    [ -n "$peer" ] && ip route replace default via "$peer" dev usb1 2>/dev/null
+                fi
+            fi
+            sleep 10
+        done
+    ) &
+    echo $! > /run/a71-route.pid
+    eend 0
+}
+
+stop() {
+    [ -f /run/a71-route.pid ] && kill "$(cat /run/a71-route.pid)" 2>/dev/null
+    rm -f /run/a71-route.pid
+}

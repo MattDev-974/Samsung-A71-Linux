@@ -1,0 +1,65 @@
+#!/sbin/openrc-run
+description="A71 USB network addressing, DHCP server and default route"
+
+depend() {
+    need a71-usb
+    before sshd
+    provide net
+}
+
+setup() {
+    conf=/run/dnsmasq-usb.conf
+    : > "$conf"
+    found=0
+    for sysif in /sys/class/net/usb*; do
+        [ -e "$sysif" ] || continue
+        dev=${sysif##*/}
+        case "$dev" in
+            usb0) addr=172.16.42.1 ;;
+            usb1) addr=172.16.43.1 ;;
+            *) continue ;;
+        esac
+        net=${addr%.*}
+        ip link set "$dev" up 2>/dev/null
+        ip addr show dev "$dev" 2>/dev/null | grep -q "inet $addr/" || \
+            ip addr add "$addr/24" dev "$dev" 2>/dev/null
+        {
+            echo "interface=$dev"
+            echo "dhcp-range=$dev,$net.100,$net.150,255.255.255.0,24h"
+            echo "dhcp-option=$dev,3,$addr"
+            echo "dhcp-option=$dev,6,1.1.1.1,9.9.9.9"
+        } >> "$conf"
+        found=1
+    done
+    [ "$found" = 1 ]
+}
+
+start() {
+    ebegin "Configuring USB network"
+    i=0
+    while [ $i -lt 60 ]; do
+        setup && break
+        i=$((i + 1)); sleep 1
+    done
+    [ $i -lt 60 ] || { eend 1 "no USB interface"; return 1; }
+
+    if ! pidof dnsmasq >/dev/null 2>&1; then
+        {
+            echo "bind-interfaces"
+            echo "user=root"
+            echo "port=0"
+            echo "dhcp-leasefile=/run/dnsmasq.leases"
+            echo "pid-file=/run/dnsmasq.pid"
+            echo "log-facility=/run/dnsmasq.log"
+            cat /run/dnsmasq-usb.conf
+        } > /run/dnsmasq.conf
+        dnsmasq --conf-file=/run/dnsmasq.conf || { eend 1 "dnsmasq"; return 1; }
+    fi
+    eend 0
+}
+
+stop() {
+    ebegin "Stopping USB network"
+    kill $(cat /run/dnsmasq.pid 2>/dev/null) 2>/dev/null
+    eend 0
+}

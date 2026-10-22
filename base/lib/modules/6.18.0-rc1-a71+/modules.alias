@@ -1,0 +1,18 @@
+# Aliases extracted from modules themselves.
+alias devname:rfkill rfkill
+alias char-major-10-242 rfkill
+alias net-pf-16-proto-16-family-nl80211 cfg80211
+alias of:N*T*Cqcom,wcn3990-wifiC* ath10k_snoc
+alias of:N*T*Cqcom,wcn3990-wifi ath10k_snoc
+alias of:N*T*Cqcom,pmk8350-rtcC* rtc_pm8xxx
+alias of:N*T*Cqcom,pmk8350-rtc rtc_pm8xxx
+alias of:N*T*Cqcom,pm8941-rtcC* rtc_pm8xxx
+alias of:N*T*Cqcom,pm8941-rtc rtc_pm8xxx
+alias of:N*T*Cqcom,pm8058-rtcC* rtc_pm8xxx
+alias of:N*T*Cqcom,pm8058-rtc rtc_pm8xxx
+alias of:N*T*Cqcom,pm8921-rtcC* rtc_pm8xxx
+alias of:N*T*Cqcom,pm8921-rtc rtc_pm8xxx
+alias of:N*T*Cqcom,qcs404-wcss-pilC* qcom_q6v5_wcss
+alias of:N*T*Cqcom,qcs404-wcss-pil qcom_q6v5_wcss
+alias of:N*T*Cqcom,ipq8074-wcss-pilC* qcom_q6v5_wcss
+alias of:N*T*Cqcom,ipq8074-wcss-pil qcom_q6v5_wcss

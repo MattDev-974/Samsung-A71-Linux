@@ -1,0 +1,14 @@
+drivers/net/wireless/ath/ath10k/ath10k_core.ko: drivers/net/wireless/ath/ath.ko net/mac80211/mac80211.ko lib/crypto/libarc4.ko net/wireless/cfg80211.ko net/rfkill/rfkill.ko
+drivers/rpmsg/qcom_glink_smem.ko:
+net/rfkill/rfkill.ko:
+drivers/remoteproc/qcom_sysmon.ko:
+lib/crypto/libarc4.ko:
+drivers/net/wireless/ath/ath.ko: net/wireless/cfg80211.ko net/rfkill/rfkill.ko
+net/wireless/cfg80211.ko: net/rfkill/rfkill.ko
+drivers/net/wireless/ath/ath10k/ath10k_snoc.ko: drivers/remoteproc/qcom_common.ko drivers/rpmsg/qcom_glink_smem.ko drivers/net/wireless/ath/ath10k/ath10k_core.ko drivers/net/wireless/ath/ath.ko net/mac80211/mac80211.ko lib/crypto/libarc4.ko net/wireless/cfg80211.ko net/rfkill/rfkill.ko
+drivers/rtc/rtc-pm8xxx.ko:
+drivers/remoteproc/qcom_pil_info.ko:
+drivers/remoteproc/qcom_common.ko: drivers/rpmsg/qcom_glink_smem.ko
+drivers/remoteproc/qcom_q6v5.ko: drivers/remoteproc/qcom_sysmon.ko
+drivers/remoteproc/qcom_q6v5_wcss.ko: drivers/remoteproc/qcom_pil_info.ko drivers/remoteproc/qcom_q6v5.ko drivers/remoteproc/qcom_sysmon.ko drivers/remoteproc/qcom_common.ko drivers/rpmsg/qcom_glink_smem.ko
+net/mac80211/mac80211.ko: lib/crypto/libarc4.ko net/wireless/cfg80211.ko net/rfkill/rfkill.ko

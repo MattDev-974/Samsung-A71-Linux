@@ -27,7 +27,7 @@ Les fichiers prêts à l'emploi sont dans `dist/` :
 | Fichier | Rôle |
 |---|---|
 | `dist/boot.img` | noyau Linux 6.18 + chargeur + initramfs (partition `BOOT`) |
-| `dist/a71-rootfs.tar.gz` | système Alpine **prêt à l'emploi** (OpenRC, apk, SSH, réseau USB déjà configurés) |
+| `dist/a71-base.tar.gz` | base Alpine reproductible (OpenRC, apk, SSH, réseau USB, NTP, modules) |
 | `dist/heimdall` | outil de flash (déjà patché pour ce modèle) |
 | `dist/SHA256SUMS` | empreintes |
 

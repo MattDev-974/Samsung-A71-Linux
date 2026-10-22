@@ -1,0 +1,10 @@
+#!/bin/sh
+# /init - PID 1 : monte les pseudo-systèmes puis laisse busybox init et OpenRC
+# prendre la main (/etc/inittab -> openrc sysinit/boot/default).
+#
+# PID 1 ne doit jamais sortir : exec /sbin/init (busybox) ne rend jamais la
+# main. Un « wait » final ferait paniquer le noyau et redémarrerait la machine.
+mount -t proc proc /proc 2>/dev/null
+mount -t sysfs sysfs /sys 2>/dev/null
+mount -t devtmpfs devtmpfs /dev 2>/dev/null
+exec /sbin/init

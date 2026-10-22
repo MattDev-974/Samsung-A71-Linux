@@ -1,0 +1,28 @@
+#!/sbin/openrc-run
+description="Set the clock over NTP (by IP: no DNS, no TLS) and store it in the RTC"
+
+depend() {
+    need a71-net a71-route
+    after a71-net a71-route
+    before sshd
+}
+
+start() {
+    ebegin "Setting clock"
+    (
+        for server in 162.159.200.1 216.239.35.0 172.16.42.1; do
+            i=0
+            while [ $i -lt 15 ]; do
+                if ntpd -q -n -p "$server" >/dev/null 2>&1; then
+                    hwclock -w >/dev/null 2>&1
+                    rc-service chronyd restart >/dev/null 2>&1
+                    exit 0
+                fi
+                i=$((i + 1))
+                sleep 2
+            done
+        done
+        exit 1
+    ) >/dev/null 2>&1 &
+    eend 0
+}
