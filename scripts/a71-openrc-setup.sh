@@ -152,8 +152,8 @@ cat > /etc/init.d/a71-clock <<'EOF'
 description="Set the clock over NTP (by IP: no DNS, no TLS)"
 
 depend() {
-    need a71-net
-    after a71-net
+    need a71-net a71-route
+    after a71-net a71-route
     before sshd
 }
 
