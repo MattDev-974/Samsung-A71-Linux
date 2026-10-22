@@ -123,3 +123,21 @@ EOF
 while true; do
     wait
 done
+
+# --- default route via the PC ---------------------------------------------
+# The PC takes a DHCP lease from us; with NAT enabled on the PC it becomes
+# our gateway, which is what gives the phone internet access.
+(
+    i=0
+    while [ $i -lt 120 ]; do
+        peer=$(awk '$3 ~ /^172\.16\.(42|43)\./ {print $3; exit}' /run/dnsmasq.leases 2>/dev/null)
+        if [ -n "$peer" ]; then
+            dev=usb0
+            case "$peer" in 172.16.43.*) dev=usb1 ;; esac
+            ip route replace default via "$peer" dev "$dev" 2>/dev/null && break
+        fi
+        i=$((i + 1))
+        sleep 1
+    done
+) &
+
