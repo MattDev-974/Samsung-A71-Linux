@@ -16,6 +16,7 @@ start() {
         mount -t configfs none "$CFS" 2>/dev/null || true
     fi
     [ -d "$CFS/usb_gadget" ] || { echo "configfs/usb_gadget unavailable"; echo "a71-gadget: configfs indisponible" > /dev/kmsg; return 1; }
+    echo "a71-gadget: configfs ok" > /dev/kmsg
 
     if [ ! -d "$G" ]; then
         mkdir -p "$G"
@@ -46,13 +47,20 @@ start() {
         ln -sf "$G/functions/ecm.usb0" "$G/configs/c.1/ecm.usb0"
     fi
 
+    # le controleur dwc3 enregistre son UDC de facon asynchrone : attendre
     udc=""
-    for u in /sys/class/udc/*; do
-        [ -e "$u" ] && udc=$(basename "$u") && break
+    i=0
+    while [ $i -lt 30 ]; do
+        for u in /sys/class/udc/*; do
+            [ -e "$u" ] && udc=$(basename "$u") && break
+        done
+        [ -n "$udc" ] && break
+        i=$((i + 1))
+        sleep 1
     done
     if [ -z "$udc" ]; then
         echo "no UDC found (USB controller missing?)"
-        echo "a71-gadget: pas d'UDC" > /dev/kmsg
+        echo "a71-gadget: pas d'UDC apres 30s" > /dev/kmsg
         return 1
     fi
     if [ "$(cat "$G/UDC" 2>/dev/null)" != "$udc" ]; then

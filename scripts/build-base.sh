@@ -90,11 +90,16 @@ while IFS="$(printf '\t')" read -r name target; do
     rel=${name#./}
     mkdir -p "$R/$(dirname "$rel")"
     ln -sf "$target" "$R/$rel"
-done < "$ROOT/base/busybox-links.txt"
+done < "$ROOT/scripts/data/busybox-links.txt"
 
 # --- surcouche A71 --------------------------------------------------------
 say "surcouche A71"
 cp -a "$ROOT/base/." "$R/"
+
+# OpenRC ignore silencieusement les scripts non executables : forcer les modes
+chmod 0755 "$R"/etc/init.d/* 2>/dev/null || true
+chmod 0755 "$R"/etc/local.d/*.start 2>/dev/null || true
+chmod 0755 "$R"/init "$R"/usr/local/sbin/* "$R"/usr/local/bin/* "$R"/sbin/a71-system 2>/dev/null || true
 
 # ntp par IP + makestep chrony
 [ -f "$R/etc/chrony/chrony.conf" ] && {
