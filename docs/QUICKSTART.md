@@ -141,13 +141,15 @@ apk update && apk add nano htop
 
 ## 8. Si ça ne démarre pas
 
+Voir [TROUBLESHOOTING.md](TROUBLESHOOTING.md) pour la liste complète des pannes
+connues. Les réflexes :
+
 | Symptôme | Piste |
 |---|---|
 | retour immédiat en Download mode | `BOOT` mal flashé → refaire l'étape 5 |
 | écran noir, pas de réseau | attendre 90 s (carte lente) ou vérifier `lsusb` |
 | pas de `172.16.42.x` sur le PC | `ip -br addr`, rebrancher le câble |
 | SSH refusé | `ssh -i ~/.ssh/id_ed25519 root@172.16.42.1` |
-| rien ne va | remettre un `boot.img` Android pour revenir à l'état d'origine |
 
 ## Revenir en arrière
 
