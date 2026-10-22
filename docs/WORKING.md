@@ -55,6 +55,37 @@ DHCP dans `/run/dnsmasq.leases`).
 ssh root@172.16.42.1
 ```
 
+## RAM complète (5,4 Gio utilisables)
+
+Le nœud mémoire du DTB mainline est un simple placeholder. Le DT **downstream**
+donne la vraie carte :
+
+```
+memory {
+    reg = <0x00 0x80000000 0x00 0x80000000     /*  2 Gio à 0x80000000  */
+           0x01 0x00      0x00 0xfcb00000>;   /* ~4 Gio à 0x1_00000000 */
+};
+```
+
+Deux plages séparées par un **trou** (0xC0000000–0x1_00000000). Déclarer une
+seule plage de 6 Gio à 0x80000000 couvre ce trou et le noyau se bloque dans
+`map_mem`. Avec les deux plages : `MemTotal: 5 634 500 kB`.
+
+## Wi-Fi (en cours)
+
+`ATH10K_SNOC` est compilé en dur (il a fallu désactiver les pilotes remoteproc
+qui forçaient `QCOM_RPROC_COMMON=m`), le nœud `wcn3990-wifi` est activé avec
+ses 5 alimentations et le firmware est dans l'initramfs. Il reste :
+
+```
+ath10k_snoc 18800000.wifi: failed to register wlfw qmi client: -517
+```
+
+Le service QMI WLFW n'est pas disponible : sur SM7150 il est fourni par le
+sous-système WCSS, dont le pilote remoteproc ne peut être construit qu'en
+module (contrainte Kconfig). Solution : construire les modules `qcom_q6v5_wcss`
++ `ath10k_snoc` et les charger depuis l'init.
+
 ## Ce qui a débloqué chaque partie
 
 | Symptôme | Cause | Correctif |
