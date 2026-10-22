@@ -3,11 +3,43 @@
 Le choix du mode se fait par un fichier **`/a71.mode`** sur la carte SD, lu par
 le sélecteur qui sert de PID 1 dans l'initramfs (`rootfs/init` de l'initramfs).
 
+Le sélecteur teste d'abord une **partition ext4** sur la carte (montage
+direct, pas de loop). Si elle existe, il démarre dessus sans condition.
+
+Sinon il lit `/a71.mode` :
+
 | Contenu de `/a71.mode` | Effet |
 |---|---|
 | `sd` | rootfs = `a71-rootfs.ext4` sur la carte SD (loop + `switch_root`) |
 | `sd:<fichier>` | rootfs = image ext4 donnée sur la carte |
 | absent / autre | mode RAM : rootfs de l'initramfs, rien n'est persisté |
+
+## Mode ext4 direct (recommandé)
+
+Toute la carte devient un système de fichiers ext4 : pas de loop, capacité
+totale, écriture directe.
+
+```bash
+# sur le PC, avec root (EFFACE la carte)
+sudo ./scripts/make-sd-ext4.sh /dev/sdX ../work/a71-rootfs.tar.gz
+```
+
+Le script formate **le périphérique entier** (label `a71root`) et y extrait le
+rootfs. Au démarrage :
+
+```
+a71: direct ext4 root on /dev/mmcblk2
+/dev/mmcblk2 on / type ext4 (rw,relatime)
+28.5G total, 27G libres
+```
+
+### Pièges rencontrés
+
+- `blkid` de busybox **ignore `-s TYPE -o value`** et renvoie la ligne
+  complète : ne pas l'utiliser pour la détection, tester le montage ext4
+  directement ;
+- formater le périphérique entier ne crée **pas** de partition : le candidat
+  est `/dev/mmcblk2`, pas `/dev/mmcblk2p1`.
 
 ## Mode SD (persistant)
 
