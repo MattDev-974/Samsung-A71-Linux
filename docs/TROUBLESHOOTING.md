@@ -30,6 +30,19 @@ point, avec sa cause et le correctif appliqué.
 | Route par défaut perdue | reconfiguration de l'interface USB | `a71-route` revérifie toutes les 10 s |
 | SSH refuse la clé | `authorized_keys` appartient à un autre uid | `--owner=0:0` à l'archivage, `StrictModes no` |
 
+## Image construite (installateur)
+
+| Symptôme | Cause | Correctif |
+|---|---|---|
+| « clé introuvable » alors que la clé existe | `KEYFILE=$(ask ...)` capturait le prompt (écrit sur stdout) | prompts sur stderr |
+| aucun réseau USB après installation | scripts `/etc/init.d/a71-*` installés en 0644 | `chmod +x` + `build-base.sh` force 0755 |
+| idem | `usb-gadget.sh` montait configfs sans créer `/sys/kernel/config` | `mkdir -p` avant le montage |
+| `NETWORK FAILED TO START`, chronyd bloqué | `a71-usb` fournissait `net` → OpenRC lançait `networking` | `a71-net` seul fournisseur + `/etc/network/interfaces` |
+| `chronyd: Could not get user/group ID of chrony` | utilisateur `chrony` créé par un script post-install sauté | `chrony:x:101:101` créé à la construction |
+| tous les services « stopped », `not booted with openrc` | le filet de sécurité remontait `/run` (masque l'état OpenRC) | `mountpoint -q /run` avant de monter |
+| filet de sécurité déclenché à chaque boot | `ip -br` non supporté par busybox | tester `/sys/class/net/usb0` |
+| `apk` : `no such package` / `temporary error` | **`/etc/resolv.conf` absent** → pas de DNS | fichier fourni dans la base + recréé par `a71-net` |
+
 ## Paquets / TLS
 
 | Symptôme | Cause | Correctif |

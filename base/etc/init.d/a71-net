@@ -43,6 +43,9 @@ start() {
     done
     [ $i -lt 60 ] || { echo "a71-net: aucune interface USB" > /dev/kmsg; eend 1 "no USB interface"; return 1; }
 
+    # resolv.conf : cree par le service si absent (image sans DHCP client)
+    [ -s /etc/resolv.conf ] || printf 'nameserver 1.1.1.1\nnameserver 9.9.9.9\n' > /etc/resolv.conf
+
     if ! pidof dnsmasq >/dev/null 2>&1; then
         {
             echo "bind-interfaces"
