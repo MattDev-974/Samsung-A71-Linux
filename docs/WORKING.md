@@ -113,6 +113,11 @@ sous-système WCSS, dont le pilote remoteproc ne peut être construit qu'en
 module (contrainte Kconfig). Solution : construire les modules `qcom_q6v5_wcss`
 + `ath10k_snoc` et les charger depuis l'init.
 
+## Modes de démarrage
+
+Voir `docs/MODES.md` : mode **RAM** (par défaut) ou mode **SD** persistant,
+sélectionné par `/a71.mode` sur la carte.
+
 ## Ce qui a débloqué chaque partie
 
 | Symptôme | Cause | Correctif |
