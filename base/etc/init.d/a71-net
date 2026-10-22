@@ -41,7 +41,7 @@ start() {
         setup && break
         i=$((i + 1)); sleep 1
     done
-    [ $i -lt 60 ] || { eend 1 "no USB interface"; return 1; }
+    [ $i -lt 60 ] || { echo "a71-net: aucune interface USB" > /dev/kmsg; eend 1 "no USB interface"; return 1; }
 
     if ! pidof dnsmasq >/dev/null 2>&1; then
         {
@@ -55,6 +55,7 @@ start() {
         } > /run/dnsmasq.conf
         dnsmasq --conf-file=/run/dnsmasq.conf || { eend 1 "dnsmasq"; return 1; }
     fi
+    echo "a71-net: usb0/usb1 configures, dnsmasq lance" > /dev/kmsg
     eend 0
 }
 

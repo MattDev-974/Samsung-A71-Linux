@@ -4,7 +4,6 @@ description="Galaxy A71 USB gadget network (RNDIS + ECM) and DHCP server"
 depend() {
     need localmount
     after devfs
-    provide net
     before sshd
 }
 

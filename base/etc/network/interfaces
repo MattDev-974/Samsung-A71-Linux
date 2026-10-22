@@ -1,0 +1,3 @@
+# Les interfaces du telephone sont gerees par le service a71-net.
+auto lo
+iface lo inet loopback
