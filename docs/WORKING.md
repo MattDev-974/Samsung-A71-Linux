@@ -1,12 +1,13 @@
 # Ça marche : Linux sur Galaxy A71 avec terminal et Internet
 
-État vérifié sur appareil (SM-A715F) :
+État vérifié sur appareil (SM-A715F) — **RAM complète et Internet
+automatique** :
 
 ```
 Linux a71 6.18.0-rc1-a71+ #29 SMP PREEMPT aarch64
-Mem: 1.6G total, 56M used       8 CPU
+Mem: 5.4G total, 73M used       8 CPU
 usb0 172.16.42.1/24   usb1 172.16.43.1/24
-default via 172.16.42.150
+default via 172.16.42.x   (posée automatiquement depuis le bail DHCP)
 $ ssh root@172.16.42.1      → terminal
 $ ping 8.8.8.8               → 43 ms
 $ wget -qO- http://example.com → page reçue
@@ -46,8 +47,9 @@ Sur le PC, une fois le téléphone démarré :
 sudo ./scripts/host-nat.sh enp48s0f4u1     # interface USB côté PC
 ```
 
-Le téléphone récupère alors sa route par défaut via le PC (l'init lit le bail
-DHCP dans `/run/dnsmasq.leases`).
+Le téléphone pose alors sa route par défaut **automatiquement** : l'init lit le
+bail DHCP du PC dans `/run/dnsmasq.leases` et préfère l'interface RNDIS
+(`usb0`, 172.16.42.x), celle que le script NAT configure.
 
 ### 4. Terminal
 

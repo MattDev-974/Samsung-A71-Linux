@@ -130,11 +130,15 @@ done
 (
     i=0
     while [ $i -lt 120 ]; do
-        peer=$(awk '$3 ~ /^172\.16\.(42|43)\./ {print $3; exit}' /run/dnsmasq.leases 2>/dev/null)
+        # prefer the RNDIS peer (172.16.42.x): that is the interface the
+        # host NAT script is normally configured for
+        peer=$(awk '$3 ~ /^172\.16\.42\./ {print $3; exit}' /run/dnsmasq.leases 2>/dev/null)
         if [ -n "$peer" ]; then
-            dev=usb0
-            case "$peer" in 172.16.43.*) dev=usb1 ;; esac
-            ip route replace default via "$peer" dev "$dev" 2>/dev/null && break
+            ip route replace default via "$peer" dev usb0 2>/dev/null && break
+        fi
+        peer=$(awk '$3 ~ /^172\.16\.43\./ {print $3; exit}' /run/dnsmasq.leases 2>/dev/null)
+        if [ -n "$peer" ]; then
+            ip route replace default via "$peer" dev usb1 2>/dev/null && break
         fi
         i=$((i + 1))
         sleep 1
