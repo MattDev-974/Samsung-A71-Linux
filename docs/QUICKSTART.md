@@ -72,12 +72,13 @@ Réponses conseillées :
 |---|---|
 | Nom d'hôte | `a71` |
 | Fuseau horaire | `Indian/Reunion` (ou `UTC`) |
+| Serveur SSH | `1` (OpenSSH) |
 | Authentification SSH | `1` (clé publique) |
 | Clé publique | laisser `~/.ssh/id_ed25519.pub` |
-| Connexion root | `1` (par clé) |
-| Mot de passe root | vide (ou un mot de passe si tu veux le login console) |
-| Utilisateur normal | vide (ou ton prénom) |
-| Paquets | `nano htop` |
+| Connexion root | `1` (par clé uniquement) |
+| Mot de passe root | vide (ou un mot de passe pour le login console) |
+| Utilisateur normal | vide (ou ton prénom, il aura `sudo`) |
+| Paquets supplémentaires | vide (nano, htop, curl, btop sont déjà présents) |
 | Cible | `1` (carte SD) puis `/dev/sdX` |
 
 **Attention** : la carte est formatée en ext4 et le système est copié dessus.
