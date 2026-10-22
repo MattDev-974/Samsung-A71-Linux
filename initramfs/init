@@ -1,0 +1,54 @@
+#!/bin/sh
+# a71 mode selector (PID 1 of the initramfs)
+#
+# Reads /a71.mode from the SD card:
+#   sd              rootfs = /a71-rootfs.ext4 on the card (persistent)
+#   sd:<file>       rootfs = given ext4 image on the card
+#   anything else   RAM mode: run /sbin/a71-system from the initramfs
+PATH=/sbin:/bin:/usr/sbin:/usr/bin
+export PATH
+mkdir -p /proc /sys /dev /mnt/sd /newroot
+mount -t proc proc /proc 2>/dev/null
+mount -t sysfs sysfs /sys 2>/dev/null
+mount -t devtmpfs devtmpfs /dev 2>/dev/null
+
+# 1) direct ext4 partition on the card -> use it as the root filesystem
+for d in /dev/mmcblk2p2 /dev/mmcblk2p1 /dev/mmcblk2 /dev/mmcblk1p2 /dev/mmcblk1p1 /dev/mmcblk1; do
+    [ -b "$d" ] || continue
+    if mount -t ext4 "$d" /newroot 2>/dev/null; then
+        echo "a71: direct ext4 root on $d" > /dev/kmsg
+        exec switch_root /newroot /init
+    fi
+done
+
+# 2) otherwise look for the FAT32 exchange partition and a mode file
+for d in /dev/mmcblk2p1 /dev/mmcblk2 /dev/mmcblk1p1 /dev/mmcblk1; do
+    [ -b "$d" ] || continue
+    mount "$d" /mnt/sd 2>/dev/null || mount -t vfat "$d" /mnt/sd 2>/dev/null || continue
+    break
+done
+
+mode=$(tr -d ' \r\n' < /mnt/sd/a71.mode 2>/dev/null)
+echo "a71: mode=[$mode]" > /dev/kmsg
+
+case "$mode" in
+  sd*)
+    img=/mnt/sd/a71-rootfs.ext4
+    case "$mode" in
+      sd:*) img="/mnt/sd/${mode#sd:}" ;;
+    esac
+    if [ -f "$img" ]; then
+        losetup /dev/loop0 "$img" 2>/dev/null
+        if mount -t ext4 /dev/loop0 /newroot 2>/dev/null; then
+            mkdir -p /newroot/mnt/sd
+            mount --move /mnt/sd /newroot/mnt/sd 2>/dev/null
+            echo "a71: switch_root to $img" > /dev/kmsg
+            exec switch_root /newroot /init
+        fi
+    fi
+    echo "a71: $img unusable, falling back to RAM" > /dev/kmsg
+    ;;
+esac
+
+echo "a71: RAM mode" > /dev/kmsg
+exec /sbin/a71-system

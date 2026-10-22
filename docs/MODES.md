@@ -1,7 +1,7 @@
 # Modes de démarrage
 
 Le choix du mode se fait par un fichier **`/a71.mode`** sur la carte SD, lu par
-le sélecteur qui sert de PID 1 dans l'initramfs (`rootfs/init` de l'initramfs).
+le sélecteur qui sert de PID 1 dans l'initramfs ([`initramfs/init`](../initramfs/init)).
 
 Le sélecteur teste d'abord une **partition ext4** sur la carte (montage
 direct, pas de loop). Si elle existe, il démarre dessus sans condition.
