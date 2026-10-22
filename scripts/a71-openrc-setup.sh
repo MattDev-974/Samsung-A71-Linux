@@ -145,6 +145,41 @@ stop() {
 EOF
 chmod +x /etc/init.d/a71-route
 
+say "horloge : module RTC, service NTP par IP"
+grep -q rtc-pm8xxx /etc/modules 2>/dev/null || echo "rtc-pm8xxx" >> /etc/modules
+cat > /etc/init.d/a71-clock <<'EOF'
+#!/sbin/openrc-run
+description="Set the clock over NTP (by IP: no DNS, no TLS)"
+
+depend() {
+    need a71-net
+    after a71-net
+    before sshd
+}
+
+start() {
+    ebegin "Setting clock"
+    (
+        for server in 162.159.200.1 216.239.35.0 172.16.42.1; do
+            i=0
+            while [ $i -lt 15 ]; do
+                if ntpd -q -n -p "$server" >/dev/null 2>&1; then
+                    hwclock -w >/dev/null 2>&1
+                    rc-service chronyd restart >/dev/null 2>&1
+                    exit 0
+                fi
+                i=$((i + 1))
+                sleep 2
+            done
+        done
+        exit 1
+    ) >/dev/null 2>&1 &
+    eend 0
+}
+EOF
+chmod +x /etc/init.d/a71-clock
+[ -f /etc/chrony/chrony.conf ] && { grep -q '^makestep' /etc/chrony/chrony.conf || echo 'makestep 1.0 3' >> /etc/chrony/chrony.conf; }
+
 say "enregistrement des services"
 rc-update add devfs sysinit 2>/dev/null || true
 rc-update add dmesg sysinit 2>/dev/null || true
@@ -161,6 +196,7 @@ rc-update add a71-net default 2>/dev/null || true
 rc-update add a71-route default 2>/dev/null || true
 rc-update add sshd default 2>/dev/null || true
 rc-update add chronyd default 2>/dev/null || true
+rc-update add a71-clock default 2>/dev/null || true
 rc-update add crond default 2>/dev/null || true
 rc-update add local default 2>/dev/null || true
 
