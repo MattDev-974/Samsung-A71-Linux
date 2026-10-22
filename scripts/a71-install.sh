@@ -116,6 +116,16 @@ show_status() {
     '
 }
 
+# ---------------------------------------------------------------- PACKAGES
+install_pkgs() {
+    [ $# -gt 0 ] || die "usage: a71-install.sh pkgs <paquet> [paquet...]"
+    $SSH 'true' 2>/dev/null || die "téléphone injoignable"
+    msg ">> apk update"
+    $SSH 'apk update 2>&1 | tail -2'
+    msg ">> installation : $*"
+    $SSH "apk add --no-cache $* 2>&1 | tail -6"
+}
+
 # ------------------------------------------------------------------- LOGS
 fetch_logs() {
     out=${1:-$ROOT/work/logs-$(date +%Y%m%d-%H%M%S)}
@@ -139,6 +149,7 @@ menu() {
  3) flasher le noyau (partition BOOT)
  4) état du système qui tourne
  5) récupérer les journaux
+ 6) installer des paquets Alpine (apk)
  q) quitter
 EOF
         printf 'choix : '
@@ -149,6 +160,7 @@ EOF
             3) flash_boot ;;
             4) show_status ;;
             5) fetch_logs ;;
+            6) printf 'paquets (ex. nano htop curl) : '; read p; install_pkgs $p ;;
             q|Q) exit 0 ;;
             *) warn "choix inconnu" ;;
         esac
@@ -162,5 +174,6 @@ case "${1:-menu}" in
     boot)      flash_boot ;;
     status)    show_status ;;
     logs)      shift; fetch_logs "$@" ;;
+    pkgs)      shift; install_pkgs "$@" ;;
     *)         sed -n '2,14p' "$0"; exit 1 ;;
 esac

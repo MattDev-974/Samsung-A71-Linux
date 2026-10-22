@@ -124,6 +124,23 @@ while true; do
     wait
 done
 
+
+# --- clock ----------------------------------------------------------------
+# There is no usable RTC value at boot; https needs a sane date.
+(
+    i=0
+    while [ $i -lt 30 ]; do
+        if ping -c1 -W1 1.1.1.1 >/dev/null 2>&1; then
+            ntpd -q -n -p pool.ntp.org >/dev/null 2>&1 && break
+            # fallback: take the date from an HTTP response
+            d=$(wget -S -q -O /dev/null http://example.com 2>&1 | sed -n 's/.*Date: //p' | head -1)
+            [ -n "$d" ] && date -s "$d" 2>/dev/null && break
+        fi
+        i=$((i + 1))
+        sleep 2
+    done
+) &
+
 # --- default route via the PC (self-healing) ------------------------------
 # The PC takes a DHCP lease from us; with NAT enabled on the PC it becomes
 # our gateway. Re-check periodically: reconfiguring the USB interface can
