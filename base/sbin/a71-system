@@ -15,7 +15,7 @@ mount -t devtmpfs devtmpfs /dev 2>/dev/null
 mkdir -p /dev/pts /dev/shm /run /tmp /var/run /var/log
 mount -t devpts devpts /dev/pts 2>/dev/null
 mount -t tmpfs -o mode=1777 tmpfs /tmp 2>/dev/null
-mount -t tmpfs -o mode=755 tmpfs /run 2>/dev/null
+mountpoint -q /run 2>/dev/null || mount -t tmpfs -o mode=755 tmpfs /run 2>/dev/null
 ln -sf /run /var/run
 
 hostname -F /etc/hostname 2>/dev/null || hostname a71

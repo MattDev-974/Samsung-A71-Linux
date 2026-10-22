@@ -68,6 +68,12 @@ grep -q '^sshd:' "$R/etc/passwd" || \
     echo 'sshd:x:74:74:privsep:/var/empty:/sbin/nologin' >> "$R/etc/passwd"
 grep -q '^sshd:' "$R/etc/group" || echo 'sshd:x:74:' >> "$R/etc/group"
 
+# utilisateur chrony (créé par le script post-install du paquet, sauté ici)
+grep -q '^chrony:' "$R/etc/passwd" || \
+    echo 'chrony:x:101:101:chrony:/var/lib/chrony:/sbin/nologin' >> "$R/etc/passwd"
+grep -q '^chrony:' "$R/etc/group" || echo 'chrony:101:' >> "$R/etc/group"
+mkdir -p "$R/var/lib/chrony"
+
 # dépôts + clés dans l'image
 mkdir -p "$R/etc/apk/keys"
 cp "$KEYS"/*.pub "$R/etc/apk/keys"/ 2>/dev/null || true

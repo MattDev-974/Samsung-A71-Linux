@@ -109,7 +109,7 @@ show_status() {
         echo "racine    : $(mount | awk "\$3==\"/\"{print \$1, \$5}")"
         echo "espace    : $(df -h / | awk "NR==2{print \$2\" total, \"\$4\" libres\"}")"
         echo "mémoire   : $(free -h | awk "/Mem:/{print \$2\" total, \"\$7\" dispo\"}")"
-        echo "réseau    : $(ip -br addr | awk "\$1!=\"lo\"{printf \"%s %s \", \$1, \$3}")"
+        echo "réseau    : $(for i in /sys/class/net/*; do n=${i##*/}; [ "$n" = lo ] && continue; a=$(ip addr show "$n" 2>/dev/null | awk "/inet /{print \$2; exit}"); printf "%s %s " "$n" "$a"; done)"
         echo "route     : $(ip route | awk "/default/{print \$3, \$5}")"
         echo "udc       : $(ls /sys/class/udc 2>/dev/null | tr "\n" " ")"
         echo "uptime    : $(uptime | sed "s/.*up //;s/,.*//")"
@@ -134,7 +134,7 @@ fetch_logs() {
     $SSH 'dmesg' > "$out/dmesg.txt" 2>/dev/null || warn "dmesg indisponible"
     $SSH 'ls -la /sys/fs/pstore 2>/dev/null; cat /sys/fs/pstore/console-ramoops-0 2>/dev/null' \
         > "$out/pstore.txt" 2>/dev/null || true
-    $SSH 'ip -br addr; ip route; cat /proc/meminfo | head -3' > "$out/state.txt" 2>/dev/null || true
+    $SSH 'ip addr; ip route; cat /proc/meminfo | head -3' > "$out/state.txt" 2>/dev/null || true
     msg ">> $(ls "$out" | tr '\n' ' ')"
 }
 
