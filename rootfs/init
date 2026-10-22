@@ -124,24 +124,22 @@ while true; do
     wait
 done
 
-# --- default route via the PC ---------------------------------------------
+# --- default route via the PC (self-healing) ------------------------------
 # The PC takes a DHCP lease from us; with NAT enabled on the PC it becomes
-# our gateway, which is what gives the phone internet access.
+# our gateway. Re-check periodically: reconfiguring the USB interface can
+# flush the default route.
 (
-    i=0
-    while [ $i -lt 120 ]; do
-        # prefer the RNDIS peer (172.16.42.x): that is the interface the
-        # host NAT script is normally configured for
-        peer=$(awk '$3 ~ /^172\.16\.42\./ {print $3; exit}' /run/dnsmasq.leases 2>/dev/null)
-        if [ -n "$peer" ]; then
-            ip route replace default via "$peer" dev usb0 2>/dev/null && break
+    while :; do
+        if ! ip route show default 2>/dev/null | grep -q '^default'; then
+            peer=$(awk '$3 ~ /^172\.16\.42\./ {print $3; exit}' /run/dnsmasq.leases 2>/dev/null)
+            if [ -n "$peer" ]; then
+                ip route replace default via "$peer" dev usb0 2>/dev/null
+            else
+                peer=$(awk '$3 ~ /^172\.16\.43\./ {print $3; exit}' /run/dnsmasq.leases 2>/dev/null)
+                [ -n "$peer" ] && ip route replace default via "$peer" dev usb1 2>/dev/null
+            fi
         fi
-        peer=$(awk '$3 ~ /^172\.16\.43\./ {print $3; exit}' /run/dnsmasq.leases 2>/dev/null)
-        if [ -n "$peer" ]; then
-            ip route replace default via "$peer" dev usb1 2>/dev/null && break
-        fi
-        i=$((i + 1))
-        sleep 1
+        sleep 10
     done
 ) &
 
