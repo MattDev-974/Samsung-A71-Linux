@@ -27,7 +27,39 @@ msg()  { printf '\033[1;36m%s\033[0m\n' "$*"; }
 warn() { printf '\033[1;33m%s\033[0m\n' "$*"; }
 err()  { printf '\033[1;31m%s\033[0m\n' "$*" >&2; }
 die()  { err "$*"; exit 1; }
-ask()  { printf '%s [%s] : ' "$1" "$2"; read v; [ -n "$v" ] && echo "$v" || echo "$2"; }
+# liste les disques amovibles et fait choisir par numéro
+pick_disk() {
+    while :; do
+        n=0
+        for d in $(lsblk -dpno NAME,RM 2>/dev/null | awk '$2==1 {print $1}'); do
+            sz=$(lsblk -dno SIZE "$d" 2>/dev/null)
+            [ -z "$sz" ] && continue
+            [ "$sz" = "0B" ] && continue
+            n=$((n + 1))
+            eval "DISK_$n=$d"
+            printf '  %d) %s  %s %s\n' "$n" "$d" "$sz" "$(lsblk -dno MODEL "$d" 2>/dev/null)" >&2
+        done
+        if [ "$n" -eq 0 ]; then
+            warn "aucun disque amovible avec une carte insérée"
+            printf 'Chemin du périphérique (ex. /dev/sde), vide pour annuler : ' >&2
+            read d
+            [ -n "$d" ] || die "annulé"
+            [ -b "$d" ] && { echo "$d"; return; }
+            warn "$d n'est pas un périphérique bloc"
+            continue
+        fi
+        printf 'Numéro de la carte (1-%d) : ' "$n" >&2
+        read i
+        eval "dev=\$DISK_$i"
+        if [ -n "${dev:-}" ] && [ -b "$dev" ]; then
+            echo "$dev"
+            return
+        fi
+        warn "choix invalide (la carte a peut-être été retirée)"
+    done
+}
+
+ask()  { printf '%s [%s] : ' "$1" "$2" >&2; read v; [ -n "$v" ] && echo "$v" || echo "$2"; }
 
 [ -f "$BASE" ] || die "rootfs de base manquant : $BASE"
 
@@ -79,21 +111,31 @@ if [ "${DEFAULTS:-0}" != "1" ]; then
     fi
 
     if [ "$SSH_AUTH" != "key" ] || [ "$ROOT_LOGIN" = "yes" ]; then
-        printf 'Mot de passe root (vide = aucun) : '; read -r ROOTPASS
+        printf 'Mot de passe root (vide = aucun) : ' >&2; read -r ROOTPASS
     fi
 
-    printf 'Utilisateur normal à créer (nom, vide = aucun) : '; read -r USERNAME
+    printf 'Utilisateur normal à créer (nom, vide = aucun) : ' >&2; read -r USERNAME
     if [ -n "$USERNAME" ]; then
-        printf 'Mot de passe de %s : ' "$USERNAME"; read -r USERPASS
+        printf 'Mot de passe de %s : ' "$USERNAME" >&2; read -r USERPASS
     fi
 
     PACKAGES=$(ask "Paquets supplémentaires (installés au 1er démarrage, espace)" "")
 
-    echo "Cible : 1) carte SD   2) USERDATA (écrase Android)"
+    echo "Cible :"
+    echo "  1) carte SD (formatée en ext4, tout est effacé)"
+    echo "  2) USERDATA du téléphone (écrase Android, via SSH)"
     T=$(ask "choix" "1")
-    if [ "$T" = "2" ]; then TARGET_KIND=userdata; else
+    if [ "$T" = "2" ]; then
+        TARGET_KIND=userdata
+    else
         TARGET_KIND=sd
-        TARGET_DEV=$(ask "périphérique de la carte (ex. /dev/sde)" "$TARGET_DEV")
+        echo "Cartes / disques amovibles détectés :"
+        TARGET_DEV=$(pick_disk)
+        [ -b "$TARGET_DEV" ] || die "périphérique invalide : $TARGET_DEV"
+        echo "Choisi : $TARGET_DEV ($(lsblk -dno SIZE,MODEL "$TARGET_DEV" 2>/dev/null))"
+        printf 'Confirmer le formatage de %s ? Tape OUI : ' "$TARGET_DEV"
+        read ok
+        [ "$ok" = "OUI" ] || die "annulé"
     fi
 fi
 
