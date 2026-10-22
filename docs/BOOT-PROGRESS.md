@@ -188,3 +188,37 @@ et les paramètres `fb0`.
 Variante de diagnostic : si le montage échoue, l'init fait `reboot -f` —
 un redémarrage en boucle signifie « carte non détectée / montage impossible »,
 un arrêt signifie « montage OK, logs écrits ».
+
+## USB : dwc3 s'initialise enfin (mais pas encore d'UDC)
+
+Chaîne de causes trouvée grâce aux logs SD :
+
+1. `dwc3_core_get_phy failed (-517)` = `-EPROBE_DEFER` : le PHY USB3
+   (`phy@88e8000`) est piloté par `phy-qcom-qmp-combo.c`, compilé en
+   **module** (`CONFIG_PHY_QCOM_QMP_COMBO=m`) et son nœud DT était
+   `status = "disabled"`.
+   → activé en dur **et** nœud passé à `okay` : le PHY probe
+   (`qcom-qmp-combo-phy 88e8000.phy: supply vdda-phy not found` reste un
+   avertissement bénin).
+2. Après ça, dwc3 n'apparaît plus dans la liste des `deferred probe pending` :
+   son `core_init` passe (aucun message `A71:` d'échec).
+3. **Mais aucun UDC** : `/sys/class/udc` reste vide malgré
+   `dr_mode = "peripheral"`. Prochaine étape : instrumenter
+   `dwc3_core_init_mode()` / `dwc3_gadget_init()` pour voir si le mode
+   périphérique est réellement appliqué.
+
+Autres corrections appliquées :
+
+- `CONFIG_TYPEC=y`, `TYPEC_TCPM=y`, `TYPEC_QCOM_PMIC=y` (étaient en modules) ;
+  le connecteur `typec@1500` reste le seul device encore différé ;
+- `vreg_l16a_2p8` (alim PHY USB) porté à 3,232 V comme dans le commit du
+  porteur « USB gadget is now working » ;
+- carte SD fiabilisée : `no-1-8-v` + `max-frequency = <50000000>` sur
+  `mmc@8804000` (le mode UHS-I SDR104 provoquait des `error -110`).
+
+## Journalisation SD : mode d'emploi
+
+L'écran de l'appareil testé étant abîmé, la carte SD est le canal principal.
+L'init lance un **logger en tâche de fond avant tout appel bloquant** qui monte
+la carte FAT32, écrit `== udc ==`, `== net ==` et `dmesg` dans
+`a71-dmesg.txt`, puis réécrit le fichier périodiquement.
