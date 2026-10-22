@@ -12,9 +12,9 @@
 set -eu
 
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
-TARBALL=${A71_ROOTFS:-$ROOT/work/a71-rootfs.tar.gz}
-BOOTIMG=${A71_BOOT:-$ROOT/work/boot-ext4b.img}
-HEIMDALL=${HEIMDALL:-$ROOT/work/heimdall-src/build/bin/heimdall}
+TARBALL=${A71_ROOTFS:-$ROOT/../work/a71-rootfs.tar.gz}
+BOOTIMG=${A71_BOOT:-$ROOT/../work/boot-ext4b.img}
+HEIMDALL=${HEIMDALL:-$ROOT/../work/heimdall-src/build/bin/heimdall}
 HOST=${A71_HOST:-172.16.42.1}
 SSH="ssh -i $HOME/.ssh/id_ed25519 -o IdentitiesOnly=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null root@$HOST"
 
@@ -128,7 +128,7 @@ install_pkgs() {
 
 # ------------------------------------------------------------------- LOGS
 fetch_logs() {
-    out=${1:-$ROOT/work/logs-$(date +%Y%m%d-%H%M%S)}
+    out=${1:-$ROOT/../work/logs-$(date +%Y%m%d-%H%M%S)}
     mkdir -p "$out"
     msg ">> récupération vers $out"
     $SSH 'dmesg' > "$out/dmesg.txt" 2>/dev/null || warn "dmesg indisponible"
@@ -144,6 +144,7 @@ menu() {
         cat <<EOF
 
 === Galaxy A71 — installateur ===
+ 0) assistant complet (hôte, SSH, clés, mot de passe, paquets…)
  1) installer le système sur une carte SD (ext4, persistant)
  2) installer dans USERDATA (eMMC, écrase Android)
  3) flasher le noyau (partition BOOT)
@@ -155,6 +156,7 @@ EOF
         printf 'choix : '
         read c
         case "$c" in
+            0) exec "$ROOT/scripts/a71-setup.sh" ;;
             1) printf 'périphérique de la carte (ex. /dev/sde) : '; read d; install_sd "$d" ;;
             2) install_userdata ;;
             3) flash_boot ;;

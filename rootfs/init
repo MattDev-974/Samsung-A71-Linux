@@ -125,6 +125,19 @@ while true; do
 done
 
 
+
+# --- first boot configuration --------------------------------------------
+if [ -x /etc/a71-firstboot.sh ] && [ -f /etc/a71-firstboot ]; then
+    (
+        i=0
+        while [ $i -lt 60 ]; do
+            ping -c1 -W1 1.1.1.1 >/dev/null 2>&1 && break
+            i=$((i + 1)); sleep 2
+        done
+        /etc/a71-firstboot.sh >>/var/log/a71-firstboot.log 2>&1
+    ) &
+fi
+
 # --- clock ----------------------------------------------------------------
 # There is no usable RTC value at boot; https needs a sane date.
 (
