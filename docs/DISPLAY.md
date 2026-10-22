@@ -55,3 +55,49 @@ framebuffer** ; dès que les écritures s'arrêtent, le panneau décroche.
   (`vddi`, `vdd`, `vci`) et les `pinctrl` du reset ;
 - comparer avec le Pixel 4a (`sm7150-google-sunfish.dts`) qui utilise le même
   DSI et un panneau AMS581VF01 piloté par DRM.
+
+## SOLUTION : le noyau pilote l'écran via DRM (vérifié sur appareil)
+
+L'écran est **stable et lisible** avec cette configuration :
+
+### Config noyau (toutes en dur, pas de modules)
+
+```
+CONFIG_DRM=y
+CONFIG_DRM_KMS_HELPER=y
+CONFIG_DRM_MSM=y
+CONFIG_DRM_PANEL_SAMSUNG_S6E3FA9_AMB667UM06=y
+CONFIG_REGULATOR_QCOM_REFGEN=y
+```
+
+`REGULATOR_QCOM_REFGEN` est indispensable : sans lui le DSI diffère
+indéfiniment (`Failed to get supply 'refgen'`) et la PLL DSI ne verrouille
+pas (`DSI PLL(0) lock failed`).
+
+### Device tree
+
+- `&mdss`, `&mdss_dsi0`, `&mdss_dsi0_phy` en `status = "okay"` ;
+- nœud panneau sous `dsi@ae94000` :
+  `compatible = "samsung,s6e3fa9-amb667um06"`, `reset-gpios = <&pm6150l_gpios 9 GPIO_ACTIVE_LOW>` ;
+- `&mdss_dsi0_out { data-lanes = <0 1 2 3>; }` ;
+- **`vdds-supply = <&vreg_l4a_0p88>`** sur `&mdss_dsi0_phy` (LDO4, 0,88 V — la
+  PLL DSI) : sans lui, `msm_dsi_phy: Failed to get supply 'vdds'`.
+
+### Log de référence
+
+```
+msm_dpu: bound ae94000.dsi (ops dsi_ops)
+[drm:dpu_kms_hw_init] dpu hardware revision:0x50020000
+[drm] Initialized msm 1.13.0 for ae01000.display-controller on minor 0
+Console: switching to colour frame buffer device 135x150
+msm_dpu: [drm] fb0: msmdrmfb frame buffer device
+```
+
+Le firmware GPU `a630_sqe.fw` manque (pas de 3D), sans effet sur l'affichage.
+
+### Conséquence importante pour la cmdline
+
+Le noyau utilise **`/chosen/bootargs` du DTB**, pas la cmdline du `boot.img` :
+les options passées à `mkbootimg --cmdline` étaient ignorées. Il faut patcher
+le DTB (`dtb-bootargs.py` / `scripts/patch-dtb-mem.py`) pour changer les
+paramètres de démarrage.
