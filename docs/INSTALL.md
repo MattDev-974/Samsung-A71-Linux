@@ -52,8 +52,9 @@ démarrage. Ce script :
 - remplace `/init` par un lanceur de `busybox init` (qui exécute `openrc`),
   l'ancien script restant disponible en `/init.a71-rescue`.
 
-Au démarrage suivant, le système est un **vrai Alpine** : `rc-service sshd
-status`, `rc-update show`, logs dans `/var/log`.
+Au démarrage suivant, le système est un **vrai Alpine** : `/init` exécute
+`/sbin/init` (busybox), qui lit `/etc/inittab` et lance OpenRC. Détails et
+pièges dans `docs/OPENRC.md`.
 
 ## Premier démarrage
 

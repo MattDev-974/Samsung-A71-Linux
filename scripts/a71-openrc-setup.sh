@@ -189,8 +189,11 @@ if [ ! -f /init.a71-rescue ]; then
     cp /init /init.a71-rescue
     cat > /init <<'EOF'
 #!/bin/sh
-# /init - PID 1 : laisse busybox init (et OpenRC) prendre la main.
-# L'ancien script est conservé dans /init.a71-rescue.
+# /init - PID 1 : on laisse busybox init prendre la main. Il lit /etc/inittab
+# et lance OpenRC (runlevels sysinit / boot / default).
+# IMPORTANT : PID 1 ne doit JAMAIS sortir, sinon panique du noyau et
+# redémarrage en boucle. Ne jamais terminer par un "wait" qui peut retourner.
+# L'ancien script reste disponible dans /init.a71-rescue.
 mount -t proc proc /proc 2>/dev/null
 mount -t sysfs sysfs /sys 2>/dev/null
 mount -t devtmpfs devtmpfs /dev 2>/dev/null
@@ -198,6 +201,23 @@ exec /sbin/init
 EOF
     chmod +x /init
 fi
+
+say "filet de sécurité (si sshd ne démarre pas)"
+mkdir -p /etc/local.d
+cat > /etc/local.d/10-a71-rescue.start <<'EOF'
+#!/bin/sh
+# Si, 90 s après le démarrage, sshd n'écoute pas, on repasse sur l'ancien init
+# (réseau + sshd manuels). Le sous-shell ne bloque pas le service local.
+(
+    sleep 90
+    if ! pidof sshd >/dev/null 2>&1; then
+        echo "a71: sshd absent, init de secours" > /dev/kmsg
+        /sbin/a71-system
+    fi
+) &
+exit 0
+EOF
+chmod +x /etc/local.d/10-a71-rescue.start
 
 say "état des runlevels"
 rc-update show 2>/dev/null | head -20
