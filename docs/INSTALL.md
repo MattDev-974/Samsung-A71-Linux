@@ -1,7 +1,9 @@
 # Assistant d'installation (`scripts/a71-setup.sh`)
 
-Reproduit l'esprit de `setup-alpine` : on répond à quelques questions, le
-système est généré puis installé.
+Reproduit l'esprit de `setup-alpine`, mais **tout est fait sur le PC** : le
+rootfs de base est un Alpine déjà fonctionnel (OpenRC, apk, SSH, réseau USB,
+NTP), et l'assistant n'écrit que la configuration. Après le flash, il n'y a
+plus rien à faire sur le téléphone.
 
 ```bash
 ./scripts/a71-setup.sh            # assistant interactif
@@ -22,7 +24,7 @@ système est généré puis installé.
 | Utilisateur normal | aucun | crée le compte + `doas` |
 | Paquets | `nano htop` | installés au premier démarrage par `apk` |
 | Cible | carte SD | carte SD (ext4) ou USERDATA |
-| Système d'init | **OpenRC** | vrai Alpine : `rc-service`, `rc-update`, services |
+
 
 ## Ce que produit l'assistant
 

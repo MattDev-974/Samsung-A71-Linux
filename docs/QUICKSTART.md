@@ -27,7 +27,7 @@ Les fichiers prêts à l'emploi sont dans `dist/` :
 | Fichier | Rôle |
 |---|---|
 | `dist/boot.img` | noyau Linux 6.18 + chargeur + initramfs (partition `BOOT`) |
-| `dist/a71-base-rootfs.tar.gz` | système Alpine de base |
+| `dist/a71-rootfs.tar.gz` | système Alpine **prêt à l'emploi** (OpenRC, apk, SSH, réseau USB déjà configurés) |
 | `dist/heimdall` | outil de flash (déjà patché pour ce modèle) |
 | `dist/SHA256SUMS` | empreintes |
 
@@ -48,7 +48,11 @@ sudo cp dist/heimdall /usr/local/bin/heimdall
 
 (ou `sudo apt install heimdall-flash` sur Debian/Ubuntu)
 
-## 3. Préparer le système et la carte SD
+## 3. Configurer et installer (une seule étape)
+
+L'image de base est déjà un Alpine complet : OpenRC, `apk`, SSH, réseau USB,
+horloge NTP, `tzdata`, `nano`, `htop`, `curl`, `btop`. L'assistant ne fait que
+de la **configuration** : aucun paquet à installer au démarrage.
 
 Brancher la carte SD au PC, repérer son périphérique :
 
@@ -74,12 +78,14 @@ Réponses conseillées :
 | Mot de passe root | vide (ou un mot de passe si tu veux le login console) |
 | Utilisateur normal | vide (ou ton prénom) |
 | Paquets | `nano htop` |
-| Système d'init | `1` (OpenRC) |
 | Cible | `1` (carte SD) puis `/dev/sdX` |
 
 **Attention** : la carte est formatée en ext4 et le système est copié dessus.
 Si tu n'as pas de clé SSH, l'assistant te propose un mot de passe : choisis
 alors l'authentification par mot de passe.
+
+Au bout de quelques dizaines de secondes, la carte contient un système
+complet et **déjà configuré**.
 
 ## 4. Passer le téléphone en Download mode
 
@@ -109,7 +115,8 @@ Le script attend le Download mode et écrit `dist/boot.img` sur la partition
 3. Rebrancher le câble au PC et attendre ~60 s.
 
 Le téléphone démarre sur la carte SD : OpenRC affiche la séquence de boot,
-puis `login:` sur l'écran (si l'écran fonctionne).
+puis `login:` sur l'écran (si l'écran fonctionne). **Rien d'autre à faire** :
+l'utilisateur, le SSH et le réseau sont déjà configurés.
 
 ## 7. Se connecter
 
