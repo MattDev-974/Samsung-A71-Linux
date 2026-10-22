@@ -10,6 +10,17 @@ noyau mainline [WiiPlayer2/linux-sm7150](https://github.com/WiiPlayer2/linux-sm7
 Objectif : **démarrer Linux, avoir un terminal et une connexion Internet**, rien
 de plus. Pas d'interface graphique, pas de tactile, pas de téléphonie.
 
+
+> ## 🚀 Tu veux juste installer ?
+>
+> Suis **[docs/QUICKSTART.md](docs/QUICKSTART.md)** : ~30 min, sans compiler,
+> avec les fichiers prêts dans [`dist/`](dist/) (noyau, système, heimdall).
+>
+> État actuel : Linux 6.18 démarre, écran DRM, **5,4 Gio de RAM**, réseau USB,
+> **SSH + Internet**, **Alpine avec OpenRC** (`rc-service`, `apk`), système
+> persistant sur carte SD ext4.
+
+
 ---
 
 ## 1. Résultat du build
