@@ -11,10 +11,11 @@ G=$CFS/usb_gadget/a71
 
 start() {
     modprobe libcomposite 2>/dev/null || true
+    mkdir -p "$CFS" 2>/dev/null || true
     if [ ! -d "$CFS/usb_gadget" ]; then
         mount -t configfs none "$CFS" 2>/dev/null || true
     fi
-    [ -d "$CFS/usb_gadget" ] || { echo "configfs/usb_gadget unavailable"; return 1; }
+    [ -d "$CFS/usb_gadget" ] || { echo "configfs/usb_gadget unavailable"; echo "a71-gadget: configfs indisponible" > /dev/kmsg; return 1; }
 
     if [ ! -d "$G" ]; then
         mkdir -p "$G"
@@ -51,12 +52,14 @@ start() {
     done
     if [ -z "$udc" ]; then
         echo "no UDC found (USB controller missing?)"
+        echo "a71-gadget: pas d'UDC" > /dev/kmsg
         return 1
     fi
     if [ "$(cat "$G/UDC" 2>/dev/null)" != "$udc" ]; then
         echo "$udc" > "$G/UDC"
     fi
     echo "usb gadget bound to $udc"
+    echo "a71-gadget: lie a $udc" > /dev/kmsg
 }
 
 stop() {

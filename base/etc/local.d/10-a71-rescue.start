@@ -4,8 +4,8 @@
 # main. Le sous-shell rend la main immédiatement au service « local ».
 (
     sleep 90
-    if ! pidof sshd >/dev/null 2>&1; then
-        echo "a71: sshd absent, init de secours" > /dev/kmsg
+    if ! ip -br addr 2>/dev/null | grep -q '^usb'; then
+        echo "a71: pas d'interface USB, init de secours" > /dev/kmsg
         [ -x /sbin/a71-system ] && /sbin/a71-system
     fi
 ) &
