@@ -221,7 +221,17 @@ check_eq "echec extraction dd" 4 "$(STUB_DD_FAIL=1 run_test --verify-only)"
 ERR_DD=$(STUB_DD_FAIL=1 run_test_err --verify-only)
 check_eq "echec extraction: stderr non vide" 1 "$([ "$(printf '%s\n' "$ERR_DD" | sed -n '2p')" -gt 0 ] && echo 1 || echo 0)"
 : >"$LOG"
-check_eq "confirmation refusee" 3 "$(timeout 5 env PATH="$BIN:/usr/bin:/bin" A71_STUB_LOG="$LOG" A71_WRITE_TEST_MODE=1 A71_TEST_DEVICE_PATH="$FAKE" A71_TEST_IMAGE_PATH="$IMAGE" TMPDIR="$TMP/write-tmp" "$SCRIPT" --image "$IMAGE" --device /dev/sdd >/dev/null 2>&1; echo $?)"
+# Refus explicite dans un pseudo-terminal : sans TTY de contrôle, le script
+# sortirait 3 pour "terminal indisponible" et le test ne testerait pas le refus.
+cat >"$TMP/confirm-refuse.sh" <<EOF
+#!/bin/sh
+exec env PATH="$BIN:/usr/bin:/bin" A71_STUB_LOG="$LOG" A71_WRITE_TEST_MODE=1 \
+    A71_TEST_DEVICE_PATH="$FAKE" A71_TEST_IMAGE_PATH="$IMAGE" TMPDIR="$TMP/write-tmp" \
+    "$SCRIPT" --image "$IMAGE" --device /dev/sdd
+EOF
+chmod 755 "$TMP/confirm-refuse.sh"
+CONFIRM_REFUSED_RC=$(printf 'NON\n' | timeout 5 script -qec "$TMP/confirm-refuse.sh" /dev/null >/dev/null 2>&1; echo $?)
+check_eq "confirmation refusee" 3 "$CONFIRM_REFUSED_RC"
 check_eq "aucune ecriture avant confirmation" 0 "$(grep -c 'of=.*fake-sdd' "$LOG" || true)"
 : >"$LOG"
 check_eq "verify-only succes" 0 "$(run_test --verify-only)"
