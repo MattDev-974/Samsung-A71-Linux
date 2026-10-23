@@ -1,0 +1,24 @@
+id: server
+recommended: true
+redistributable: true
+description: "Serveur USB/SSH minimal, rootfs microSD"
+features:
+  - base-rootfs
+  - openrc
+  - usb-ecm
+  - usb-rndis
+  - ssh
+  - usb-internet
+  - clock
+  - chrony
+  - runtime-logs
+excludes:
+  - mesa
+  - samsung-zap
+  - wifi
+  - bluetooth
+  - audio
+  - developmental-tools
+output:
+  policy:
+    - REDISTRIBUTABLE

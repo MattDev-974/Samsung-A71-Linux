@@ -1,0 +1,69 @@
+# configs/rootfs-mode-policy.txt - politique de modes du rootfs A71 (D1)
+#
+# Format : type mode uid gid chemin justification
+#   type : d (repertoire), f (fichier regulier), l (lien symbolique)
+#   mode : octal sur 4 chiffres (setuid/setgid/sticky inclus)
+#   uid/gid : identites LOGIQUES de l'image cible (pas celles de l'hote)
+#   chemin : absolu, sans '..', sans doublon
+#
+# Cette politique ne remplace pas les metadonnees des paquets : elle les
+# reprend pour les chemins sensibles et fixe les modes des fichiers crees par
+# le projet. Pour tous les autres chemins, la source est :
+#   * l'archive minirootfs Alpine 3.22.7 verifiee par SHA-256/SHA-512 ;
+#   * les paquets .apk signes, lus dans leurs flux tar (mode/uid/gid reels).
+#
+# /etc/gshadow : absent de l'image Alpine 3.22.7 construite sans paquet
+# shadow. E1 verifie que, s'il existe, il n'est pas lisible par les autres.
+
+# --- racine et repertoires systeme ---------------------------------------
+d 0755 0 0 / archive minirootfs 3.22.7 (entree ./ a 0755)
+d 0755 0 0 /bin repertoire systeme Alpine (0755)
+d 0755 0 0 /etc repertoire systeme Alpine (0755)
+d 0755 0 0 /etc/init.d scripts OpenRC, paquet openrc (0755)
+d 0755 0 0 /etc/local.d scripts locaux du projet (0755)
+d 0755 0 0 /etc/ssh configuration SSH, paquet openssh-server-common (0755)
+d 0755 0 0 /home repertoire systeme Alpine (0755)
+d 0700 0 0 /root repertoire prive root, archive minirootfs 3.22.7 (0700)
+d 1777 0 0 /tmp repertoire temporaire, archive minirootfs 3.22.7 (01777)
+d 1777 0 0 /var/tmp repertoire temporaire, archive minirootfs 3.22.7 (01777)
+d 0755 0 0 /lib/modules modules noyau, politique projet (0755)
+
+# --- binaires BusyBox et setuid ------------------------------------------
+f 0755 0 0 /bin/busybox paquet busybox 1.37.0-r20, tar 0755
+f 4111 0 0 /bin/bbsuid paquet busybox-suid 1.37.0-r20, tar 04111 setuid root
+f 4755 0 0 /bin/mount paquet mount 2.41.6-r1, tar 04755 setuid root
+f 4755 0 0 /bin/umount paquet umount 2.41.6-r1, tar 04755 setuid root
+f 2755 0 42 /usr/sbin/unix_chkpwd paquet linux-pam 1.7.0-r4, tar 02755 setgid shadow (gid 42)
+f 2755 0 5 /usr/bin/wall paquet util-linux-misc 2.41.6-r1, tar 02755 setgid tty (gid 5)
+d 2750 0 10 /var/log/chrony paquet chrony 4.6.1-r1, tar 02750 setgid wheel (gid 10)
+
+# --- comptes et secrets ---------------------------------------------------
+f 0644 0 0 /etc/passwd paquet alpine-baselayout-data 3.7.0-r0, tar 0644
+f 0644 0 0 /etc/group paquet alpine-baselayout-data 3.7.0-r0, tar 0644
+f 0640 0 0 /etc/shadow paquet alpine-baselayout-data 3.7.0-r0, tar 0640 - groupe shadow non requis
+f 0600 0 42 /etc/gshadow absent de l'image Alpine 3.22.7 sans paquet shadow - si present, restrictif
+f 0644 0 0 /etc/ssh/sshd_config configuration projet, lisible par tous mais sans secret
+f 0755 0 0 /etc/local.d/firstboot.start script projet executables par tous, sans secret
+
+# --- configuration creee par le projet ------------------------------------
+f 0644 0 0 /etc/hostname configuration projet
+f 0644 0 0 /etc/hosts configuration projet
+f 0644 0 0 /etc/fstab configuration projet
+f 0644 0 0 /etc/timezone configuration projet
+f 0644 0 0 /etc/inittab configuration projet
+f 0644 0 0 /etc/conf.d/local configuration projet
+f 0644 0 0 /etc/network/interfaces configuration projet
+f 0644 0 0 /etc/apk/repositories depots Alpine v3.22 main + community
+f 0644 0 0 /etc/apk/world liste des paquets installee par apk
+l 0777 0 0 /etc/localtime lien vers /usr/share/zoneinfo/UTC, mode de lien standard
+
+# --- contrat de demarrage historique --------------------------------------
+l 0777 0 0 /init lien symbolique exact vers /sbin/init, contrat switch_root /newroot /init
+d 0755 0 0 /etc/modprobe.d repertoire modprobe projet
+f 0644 0 0 /etc/modprobe.d/a71-historical-kernel.conf blacklist ipv6 module-only, noyau #35 built-in
+f 0755 0 0 /etc/init.d/a71-usb service OpenRC gadget ConfigFS projet
+f 0755 0 0 /etc/init.d/a71-net service OpenRC IPv4/DHCP projet
+f 0755 0 0 /etc/init.d/a71-ssh-keys service OpenRC cles hote avant sshd
+f 0755 0 0 /etc/init.d/a71-bootlog service OpenRC diagnostics early/late
+f 0755 0 0 /usr/local/sbin/a71-usb-gadget script gadget ConfigFS projet
+d 0700 0 0 /root/.ssh repertoire SSH root, aucune cle preinstallee

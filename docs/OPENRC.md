@@ -13,7 +13,7 @@ sboot → BOOT (uniLoader + Image + DTB + initramfs)
       → /init : monte /proc /sys /dev puis exec /sbin/init
       → busybox init lit /etc/inittab
       → openrc sysinit / boot / default
-      → login: sur tty1 et ttyMSM0
+      → login: sur tty0 (ttyMSM0 absent de ce noyau)
 ```
 
 ## Services

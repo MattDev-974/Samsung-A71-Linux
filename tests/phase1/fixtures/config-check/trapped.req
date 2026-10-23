@@ -1,0 +1,2 @@
+CONFIG_A=y
+$(touch /tmp/a71-pwned)

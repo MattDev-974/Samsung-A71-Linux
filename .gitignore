@@ -12,3 +12,29 @@
 *.pkg.tar.zst
 *.apk
 __pycache__/
+
+# Nouveau pipeline (phase 1)
+/work/
+/.cache/
+
+# Private firmware / user data (never publish)
+work/
+work/private/
+firmware samsung/
+firmware-samsung/
+*.tar.md5
+AP_*.tar*
+BL_*.tar*
+CP_*.tar*
+CSC_*.tar*
+HOME_CSC_*.tar*
+*_FirmwareInfo_*
+recovery-getprop.txt
+samsung-version-hits.txt
+*.pit
+*.key
+*.pem
+id_rsa*
+id_ed25519*
+known_hosts
+.ssh/
