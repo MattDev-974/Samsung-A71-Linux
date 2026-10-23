@@ -1,0 +1,206 @@
+# manifest.yaml - valeurs verrouillees du projet Samsung A71 Linux
+#
+# Regles :
+#   * toute valeur inconnue porte un marqueur TODO_VERIFIER ou TODO_BUILD ;
+#   * un marqueur ne bloque QUE l'etape qui en depend ;
+#   * aucune valeur n'est inventee : chaque entree est soit observee dans le
+#     depot, soit verifiee sur une source identifiee (voir docs/PROVENANCE.md) ;
+#   * les valeurs historiques sont isolees sous *.legacy_observed.* et ne
+#     doivent jamais etre consommees par le nouveau pipeline ;
+#   * une signature n'est jamais declaree verifiee sans verification reelle ;
+#   * source unique de verite pour la configuration noyau :
+#     kernel_config.validation_status.
+#
+# Sous-ensemble YAML supporte (volontairement limite) :
+#   * mappings imbriques par indentation (2 espaces par niveau) ;
+#   * valeurs scalaires sur une seule ligne (guillemets doubles optionnels) ;
+#   * commentaires uniquement en debut de ligne ;
+#   * PAS de listes, PAS de blocs multilignes, PAS d'anchors, PAS de tags.
+# Le fichier n'est jamais execute ni evalue : il est lu par un parseur awk.
+
+project:
+  name: Samsung A71 Linux Installer
+  version: 0.1.0
+  status: phase-3-increment-3a2
+  unsupported_note: aucune restauration Android dans cette version
+
+device:
+  name: Samsung Galaxy A71 4G
+  codename: a71
+  models_csv: SM-A715F,SM-A715F/DS
+  rejected_prefixes_csv: SM-A716
+  soc: Qualcomm SM7150 (Snapdragon 730)
+  architecture: arm64
+
+# Noyau : depot tiers retenu par le projet, PAS une source Samsung ou
+# kernel.org. Commit verifie via l'API GitHub (existence, date, absence de
+# signature) ; le pipeline epingle le SHA complet. Voir docs/PROVENANCE.md.
+kernel:
+  repository: https://github.com/WiiPlayer2/linux-sm7150
+  branch: 2025-10-13-display
+  commit: 5d80fcdbbb3fbf399d3db66b0f14497d11c9489a
+  source_version: 6.18.0-rc1
+  expected_release: 6.18.0-rc1-a71+
+  built_release: TODO_BUILD
+  dts_source: arch/arm64/boot/dts/qcom/sm7150-samsung-a715f.dts
+  dtb_output: arch/arm64/boot/dts/qcom/sm7150-samsung-a715f.dtb
+  signature_status: unsigned
+  validation_status: provisional
+
+# Configuration noyau : copie vendue dans le depot depuis un commit pmaports
+# epingle. pmaports n'est PAS une dependance reseau du build utilisateur.
+# Voir docs/KERNEL_CONFIG.md et configs/upstream/pmaports-sm7150.provenance.
+kernel_config:
+  strategy: vendored_from_pmaports
+  pmaports_repository: https://gitlab.com/postmarketOS/pmaports
+  pmaports_commit: 5664c3237ca1d9f22b384a997cfb02facde72ed7
+  pmaports_path: device/testing/linux-postmarketos-qcom-sm7150/config-postmarketos-qcom-sm7150.aarch64
+  vendored_file: configs/upstream/pmaports-sm7150.config
+  vendored_sha256: bdc559602cf689d0f600d69b00ceb67f2d81605ac4893384468f9e15673ca523
+  vendored_size: 219110
+  provenance_file: configs/upstream/pmaports-sm7150.provenance
+  overlay_file: configs/a71-extra.config
+  proposed_fragment: configs/a71-proposed.config
+  required_symbols_file: configs/a71-required-symbols.txt
+  verified_symbols_file: configs/a71-symbols-verified.txt
+  fragment_status: proposed
+  required_symbols_status: documented
+  verified_symbols_status: documentary_snapshot
+  display_policy_status: experimental
+  cmdline_policy_status: experimental
+  verified_symbols_commit: 5d80fcdbbb3fbf399d3db66b0f14497d11c9489a
+  upstream_pkgver: 6.7.4
+  source_status: pinned
+  integrity_status: verified
+  merge_contract_status: implemented
+  requirements_contract_status: implemented
+  build_contract_status: implemented
+  reproducibility_contract_status: implemented
+  reproducibility_validation_status: verified
+  runtime_status: not_tested
+  validation_status: provisional
+
+# Alpine 3.22.7 : checksums SHA-256 et SHA-512 officiels publies par le
+# fournisseur. La signature GPG .asc existe mais n'a pas ete verifiee.
+distribution:
+  name: Alpine Linux
+  series: v3.22
+  version: 3.22.7
+  architecture: aarch64
+  mirror: https://dl-cdn.alpinelinux.org/alpine
+  repositories_csv: main,community
+  minirootfs_url: https://dl-cdn.alpinelinux.org/alpine/v3.22/releases/aarch64/alpine-minirootfs-3.22.7-aarch64.tar.gz
+  minirootfs_sha256: 7e9b34ff3304381909e566e2c93de450664ccc724191261423974fc121c11623
+  minirootfs_sha512: b8a60e0944dcf9e5f6f2caaf9bd260429aedebf56d5aa68d96b2eeaea4448526edaad00ee71712d96dbb74f70f2c3ae59f452afa7e2fe9b0f7635c251fdb533c
+  minirootfs_size: 3971679
+  minirootfs_signature_status: not_verified
+
+# Toolchain Bootlin : archive .tar.xz, SHA-256 officiel publie, aucune
+# signature. L'hote x86_64 est une information de metadata, pas une preuve
+# d'execution (voir docs/PROVENANCE.md).
+toolchain:
+  name: Bootlin aarch64 glibc stable
+  version: aarch64--glibc--stable-2024.05-1
+  base_url: https://toolchains.bootlin.com/downloads/releases/toolchains/aarch64/tarballs/
+  archive: aarch64--glibc--stable-2024.05-1.tar.xz
+  archive_url: https://toolchains.bootlin.com/downloads/releases/toolchains/aarch64/tarballs/aarch64--glibc--stable-2024.05-1.tar.xz
+  checksum_url: https://toolchains.bootlin.com/downloads/releases/toolchains/aarch64/tarballs/aarch64--glibc--stable-2024.05-1.sha256
+  sha256: b0fad860eb94b503a56d66ca8b9ba06d2d4826943e37ebd1d7217423f6ea5bb2
+  size: 83754052
+  signature_status: unavailable
+  host_arch: x86_64
+  host_arch_status: metadata_only
+  gcc: 13.3.0
+  binutils: 2.41
+  glibc: 2.39-74-g198632a05f6c7b9ab67d3331d8caace9ceabb685
+  linux_headers: 4.19.315
+  mode: project_managed
+
+# Chargeur : PR 130 « board: Add support for Samsung Galaxy A71 », FUSIONNEE.
+# Reference epinglee = commit de fusion (atteignable depuis master), la tete de
+# PR est conservee comme provenance. La licence est RAPPORTEE par l'API GitHub
+# (licence du depot), son statut SPDX exact n'est pas tranche.
+uniloader:
+  repository: https://github.com/ivoszbg/uniLoader
+  pull_request: 130
+  pr_head: b253dc48f9d297786df60d4389552752ccfb65da
+  commit: 4c626a73cc38308227b5c28e75558b3da574312b
+  defconfig: configs/a71_defconfig
+  board_file: board/samsung/board-a71.c
+  license_reported: GPL-2.0
+  license_origin: github_api
+  license_spdx_status: TODO_VERIFIER
+  signature_status: unsigned
+  validation_status: provisional
+
+# DTB Android : fourni par l'utilisateur (image boot Android/LineageOS de son
+# propre SM-A715F). Aucun telechargement, aucune extraction automatique.
+android_dtb:
+  source: user_provided_boot_image
+  validation_status: TODO_VERIFIER
+
+# Firmware WCN3990 : uniquement les fichiers officiels du paquet Arch
+# linux-firmware-atheros 1:20260916-1, deja decompresses depuis .zst.
+firmware:
+  wcn3990:
+    source_package: linux-firmware-atheros
+    source_version: "1:20260916-1"
+    source_url: https://gitlab.com/kernel-firmware/linux-firmware
+    license: LicenseRef-atheros
+    path: lib/firmware/ath10k/WCN3990/hw1.0
+    board_2_sha256: c49d2f1894de6edc0ab0c8c9a17ca0328703747c49b6e9428f1de501c2c02c1d
+    board_2_size: 893528
+    firmware_5_sha256: fef6539e0127579536bc977be57a90d018b83f2931fedc3a8870fbe38d6c4127
+    firmware_5_size: 60
+    wlanmdsp_sha256: 92e1501254e6de78c0f2e2cf091507d488b608d07e53acd14813a82744823ec2
+    wlanmdsp_size: 3725044
+    notice_sha256: d7a42cb726d992c427fc130b60b076c5536297aafceecdb053b1b5de17f7d5fa
+    notice_size: 27005
+    initramfs_policy: rootfs_only_probe_after_mount
+    validation_status: provisional
+
+# Parametres de l'image boot : les valeurs du nouveau pipeline doivent venir
+# UNIQUEMENT de boot_image.validated.*. Les valeurs legacy_observed.* sont
+# conservees pour la tracabilite et ne doivent jamais etre consommees.
+boot_image:
+  validation_status: TODO_VERIFIER
+  validated:
+    header_version: TODO_VERIFIER
+    page_size: TODO_VERIFIER
+    kernel_addr: TODO_VERIFIER
+    ramdisk_addr: TODO_VERIFIER
+    tags_addr: TODO_VERIFIER
+    dtb_addr: TODO_VERIFIER
+    cmdline: TODO_VERIFIER
+    boot_partition_size: TODO_VERIFIER
+  legacy_observed:
+    origin: ancien scripts/mkbootimg.py et ancien dist/boot.img
+    status: historique, non valide pour le nouveau pipeline
+    header_version: 2
+    page_size: 4096
+    kernel_addr: 0x8000
+    ramdisk_addr: 0x1000000
+    tags_addr: 0x100
+    dtb_addr: 0x1f00000
+    cmdline: console=tty0 console=ttyMSM0,115200n8 consoleblank=0 loglevel=7
+
+# Politique USB : le reseau USB n'est PAS garanti avant le montage de la
+# racine (aucun contrat d'inclusion des modules dans l'initramfs).
+usb_policy:
+  early_usb_recovery_status: not_implemented
+  network_before_root: not_guaranteed
+  module_policy: chargeable_apres_montage
+
+# Rootfs : contrats d'acquisition et d'extraction implementes. Les resultats
+# locaux (hash recalcule, chemins, dates) restent dans work/rootfs/.
+rootfs:
+  acquisition_contract_status: implemented
+  extraction_contract_status: implemented
+  module_integration_contract_status: implemented
+  depmod_contract_status: implemented
+  runtime_status: not_tested
+  validation_status: provisional
+
+storage:
+  root_label: A71ROOT
+  root_filesystem: ext4

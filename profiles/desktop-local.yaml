@@ -1,0 +1,19 @@
+id: desktop-local
+recommended: false
+redistributable: false
+extends: desktop-open
+description: "Desktop-open + ZAP Samsung fourni par l'utilisateur"
+features:
+  - samsung-firmware-import
+  - gpu-zap-local
+requires:
+  - samsung-firmware
+  - recovery-boot
+limitations:
+  - contains-user-supplied-samsung-firmware
+  - local-only-non-redistributable
+output:
+  policy:
+    - LOCAL_ONLY
+    - NOT_REDISTRIBUTABLE
+    - CONTAINS_USER_SUPPLIED_SAMSUNG_FIRMWARE

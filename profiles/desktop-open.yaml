@@ -1,0 +1,16 @@
+id: desktop-open
+recommended: false
+redistributable: true
+extends: server
+description: "Serveur + Mesa/Freedreno + SQE/GMU redistribuables"
+features:
+  - gpu-sqe
+  - gpu-gmu
+  - libdrm
+  - mesa-freedreno
+limitations:
+  - gpu-needs-local-zap-for-complete-initialization
+  - mesa-validation-stopped-at-eglChooseConfig
+output:
+  policy:
+    - REDISTRIBUTABLE

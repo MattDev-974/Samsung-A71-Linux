@@ -1,0 +1,47 @@
+# configs/a71-symbols-verified.txt
+#
+# Releve de verification des symboles Kconfig dans le noyau epingle :
+#   depot  : https://github.com/WiiPlayer2/linux-sm7150
+#   commit : 5d80fcdbbb3fbf399d3db66b0f14497d11c9489a
+#   date   : 2026-10-22
+#   methode: clone partiel (--filter=tree:0 --depth 1), sparse-checkout des
+#            repertoires Kconfig concernes, puis grep "config <SYMBOLE>"
+#
+# Format : SYMBOLE | fichier Kconfig | type | valeur base pmaports | valeur proposee
+#
+# Motifs particuliers (verifies dans le commit 5d80fcdbbb3fbf399d3db66b0f14497d11c9489a) :
+#   CONFIG_DRM_PANEL_HUAXING_NT36672C : panneau non reference par le DTS A71 ;
+#     son entree Kconfig ne fait pas "select DRM_DSC_HELPER" alors que le code
+#     appelle drm_dsc_pps_payload_pack() -> echec de lien vmlinux observe.
+#     Desactive, sans generalisation a d'autres panneaux sans preuve.
+# "absent" = symbole non present dans le .config de la base vendue.
+CONFIG_DRM_MSM | drivers/gpu/drm/msm/Kconfig | tristate | y | m
+CONFIG_DRM_SIMPLEDRM | drivers/gpu/drm/sysfb/Kconfig | tristate | absent | y
+CONFIG_DRM_PANEL_SAMSUNG_S6E3FA9_AMB667UM06 | drivers/gpu/drm/panel/Kconfig | tristate | absent | absent
+CONFIG_DRM_PANEL_HUAXING_NT36672C | drivers/gpu/drm/panel/Kconfig | tristate | y | n
+CONFIG_REGULATOR_QCOM_REFGEN | drivers/regulator/Kconfig | tristate | absent | absent
+CONFIG_PHY_QCOM_QMP_COMBO | drivers/phy/qualcomm/Kconfig | tristate | m | m
+CONFIG_TYPEC_QCOM_PMIC | drivers/usb/typec/tcpm/Kconfig | tristate | m | m
+CONFIG_MMC_SDHCI_MSM | drivers/mmc/host/Kconfig | tristate | y | y
+CONFIG_EXT4_FS | fs/ext4/Kconfig | tristate | y | y
+CONFIG_BLK_DEV_INITRD | init/Kconfig | bool | y | y
+CONFIG_DEVTMPFS | drivers/base/Kconfig | bool | y | y
+CONFIG_USB_DWC3 | drivers/usb/dwc3/Kconfig | tristate | y | y
+CONFIG_USB_CONFIGFS | drivers/usb/gadget/Kconfig | tristate | y | y
+CONFIG_USB_CONFIGFS_RNDIS | drivers/usb/gadget/Kconfig | tristate | y | y
+CONFIG_USB_CONFIGFS_ECM | drivers/usb/gadget/Kconfig | tristate | y | y
+CONFIG_VT | drivers/tty/Kconfig | bool | y | y
+CONFIG_VT_CONSOLE | drivers/tty/Kconfig | bool | y | y
+CONFIG_FRAMEBUFFER_CONSOLE | drivers/video/console/Kconfig | tristate | y | y
+CONFIG_MMC | drivers/mmc/Kconfig | tristate (menuconfig) | y | y
+CONFIG_MMC_SDHCI | drivers/mmc/host/Kconfig | tristate | y | y
+CONFIG_MMC_SDHCI_PLTFM | drivers/mmc/host/Kconfig | tristate | y | y
+CONFIG_DEVTMPFS_MOUNT | drivers/base/Kconfig | bool | y | y
+CONFIG_DRM | drivers/gpu/drm/Kconfig | tristate (menuconfig) | y | y
+CONFIG_DRM_FBDEV_EMULATION | drivers/gpu/drm/clients/Kconfig | bool | y | y
+CONFIG_LOCALVERSION | init/Kconfig | string | "-sm7150" | "-a71"
+CONFIG_CMDLINE | arch/arm64/Kconfig | string | "" | "console=tty0 ..."
+CONFIG_CMDLINE_EXTEND | ABSENT sur arm64 (6.18) | - | - | non utilise
+CONFIG_CMDLINE_FROM_BOOTLOADER | arch/arm64/Kconfig | bool (choice, defaut) | non affiche (CMDLINE vide) | actif des que CMDLINE non vide
+CONFIG_DEBUG_INFO_NONE | lib/Kconfig.debug | bool | non defini | y
+CONFIG_LOCALVERSION_AUTO | init/Kconfig | bool | absent | n

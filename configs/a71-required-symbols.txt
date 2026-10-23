@@ -1,0 +1,53 @@
+# configs/a71-required-symbols.txt
+#
+# Exigences CRITIQUES de la configuration noyau du Galaxy A71.
+# Ce fichier exprime des EXIGENCES, pas une configuration : il ne recopie pas
+# la base vendue et ne remplace pas le fragment.
+#
+# Format : une exigence par ligne, "CONFIG_SYMBOL=valeur", commentaires en
+# debut de ligne (#). Valeurs acceptees :
+#   y    : doit etre integre au noyau (obligatoire avant/pendant le montage)
+#   m    : doit etre present en module (chargeable apres montage)
+#   m|y  : integre ou module, les deux conviennent
+#   n    : doit etre desactive
+#
+# Verifie APRES fusion et olddefconfig par scripts/check-config.sh, sur le
+# .config final. Un symbole ABSENT est un echec, meme pour une exigence n.
+#
+# Chaque symbole doit figurer dans configs/a71-symbols-verified.txt (releve
+# de verification dans le commit noyau epingle).
+
+# --- chaine stockage : necessaire AVANT le montage de LABEL=A71ROOT -------
+CONFIG_MMC=y
+CONFIG_MMC_SDHCI=y
+CONFIG_MMC_SDHCI_PLTFM=y
+CONFIG_MMC_SDHCI_MSM=y
+CONFIG_EXT4_FS=y
+CONFIG_BLK_DEV_INITRD=y
+
+# --- /dev des le demarrage ------------------------------------------------
+CONFIG_DEVTMPFS=y
+CONFIG_DEVTMPFS_MOUNT=y
+
+# --- politique d'affichage retenue : console texte sur le framebuffer du
+# bootloader via simpledrm (le DTS A71 ne declare aucun panneau DSI).
+# DRM_MSM n'est PAS une exigence critique : c'est une hypothese experimentale
+# (=m dans le fragment propose), voir docs/KERNEL_CONFIG.md.
+CONFIG_DRM=y
+CONFIG_DRM_SIMPLEDRM=y
+CONFIG_DRM_FBDEV_EMULATION=y
+CONFIG_VT=y
+CONFIG_VT_CONSOLE=y
+CONFIG_FRAMEBUFFER_CONSOLE=y
+
+# --- reseau USB : seulement APRES montage du rootfs -----------------------
+# Un module n'est utilisable dans l'initramfs que si celui-ci l'embarque
+# explicitement ; aucun contrat de ce type n'existe aujourd'hui.
+CONFIG_USB_DWC3=m|y
+CONFIG_USB_CONFIGFS=m|y
+CONFIG_USB_CONFIGFS_RNDIS=m|y
+CONFIG_USB_CONFIGFS_ECM=m|y
+
+# --- reproductibilite ------------------------------------------------------
+# Un suffixe git automatique rendrait la release non reproductible.
+CONFIG_LOCALVERSION_AUTO=n

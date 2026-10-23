@@ -1,0 +1,24 @@
+# Provenance de la configuration noyau vendue
+#
+# Copie exacte d'un fichier du depot officiel postmarketOS/pmaports.
+# Ce fichier n'est PAS une configuration validee pour le projet : voir
+# docs/KERNEL_CONFIG.md et manifest.yaml (kernel_config.validation_status).
+
+repository: https://gitlab.com/postmarketOS/pmaports
+commit: 5664c3237ca1d9f22b384a997cfb02facde72ed7
+reference: master (au moment de la consultation ; identite figee par le commit ci-dessus)
+path: device/testing/linux-postmarketos-qcom-sm7150/config-postmarketos-qcom-sm7150.aarch64
+vendored_file: configs/upstream/pmaports-sm7150.config
+sha256: bdc559602cf689d0f600d69b00ceb67f2d81605ac4893384468f9e15673ca523
+size_bytes: 219110
+consulted_at: 2026-10-22
+retrieved_with: curl --fail --show-error --silent --location "https://gitlab.com/postmarketOS/pmaports/-/raw/5664c3237ca1d9f22b384a997cfb02facde72ed7/device/testing/linux-postmarketos-qcom-sm7150/config-postmarketos-qcom-sm7150.aarch64"
+upstream_commit_date: 2024-07-31T22:44:39+02:00
+upstream_commit_title: linux-postmarketos-qcom-sm7150: enable zstd firmware compression support (MR 5447)
+upstream_author: Stefan Hansson <newbyte@postmarketos.org>
+upstream_pkgver: 6.7.4
+file_header: Linux/arm64 6.7.4 Kernel Configuration
+signature_status: pgp_verified_gitlab
+signature_detail: PGP, verification_status=verified (API GitLab), cle 8A700086A9FE41FD ; aucune verification locale effectuee
+validation_status: provisional
+notes: configuration ciblee noyau 6.7.4 ; noyau du projet = 6.18.0-rc1 ; options ajoutees/retirees depuis 6.7 gerees par olddefconfig, donc non validee en l'etat

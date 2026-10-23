@@ -211,7 +211,8 @@ if [ ! -f /etc/inittab ]; then
 
 # consoles
 tty1::respawn:/sbin/getty 38400 tty1
-ttyMSM0::respawn:/sbin/getty -L 115200 ttyMSM0 vt100
+# ttyMSM0 n'est pas enregistre sur ce noyau ; ne pas relancer getty dessus.
+#ttyMSM0::respawn:/sbin/getty -L 115200 ttyMSM0 vt100
 
 ::ctrlaltdel:/sbin/reboot
 ::shutdown:/sbin/openrc shutdown
